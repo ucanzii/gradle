@@ -516,7 +516,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Deprecated
     @Override
     public Set<Configuration> getAll() {
-        DeprecationLogger.deprecateAction("Calling the Configuration.getAll() method")
+        DeprecationLogger.deprecateMethod(Configuration.class, "getAll()")
             .withAdvice("Use the configurations container to access the set of configurations instead.")
             .willBeRemovedInGradle9()
             .withUpgradeGuideSection(8, "deprecated_configuration_get_all")
@@ -564,25 +564,50 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
+    @Deprecated
     public Set<File> files(Dependency... dependencies) {
-        return fileCollection(dependencies).getFiles();
+        Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
+        return fileCollectionInternal("files(Dependency...)", deps::contains).getFiles();
     }
 
     @Override
+    @Deprecated
     public Set<File> files(Closure dependencySpecClosure) {
-        return fileCollection(dependencySpecClosure).getFiles();
+        return fileCollectionInternal("files(Closure)", Specs.convertClosureToSpec(dependencySpecClosure)).getFiles();
     }
 
     @Override
+    @Deprecated
     public Set<File> files(Spec<? super Dependency> dependencySpec) {
-        return fileCollection(dependencySpec).getFiles();
+        return fileCollectionInternal("files(Spec)", dependencySpec).getFiles();
     }
 
     @Override
+    @Deprecated
     public FileCollection fileCollection(Spec<? super Dependency> dependencySpec) {
+        return fileCollectionInternal("fileCollection(Spec)", dependencySpec);
+    }
+
+    @Override
+    @Deprecated
+    public FileCollection fileCollection(Closure dependencySpecClosure) {
+        return fileCollectionInternal("fileCollection(Closure)", Specs.convertClosureToSpec(dependencySpecClosure));
+    }
+
+    @Override
+    @Deprecated
+    public FileCollection fileCollection(Dependency... dependencies) {
+        Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
+        return fileCollectionInternal("fileCollection(Dependency...)", deps::contains);
+    }
+
+    private FileCollection fileCollectionInternal(String methodName, Spec<? super Dependency> dependencySpec) {
+        DeprecationLogger.deprecateMethod(Configuration.class, methodName)
+            .withAdvice("Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecate_filtered_configuration_file_and_filecollection_methods")
+            .nagUser();
         assertIsResolvable();
-        // After asserting, we are definitely allowed, but might be deprecated, so check to warn now
-        warnOnDeprecatedUsage("fileCollection(Spec)", ProperMethodUsage.RESOLVABLE);
         return fileCollectionFromSpec(dependencySpec);
     }
 
@@ -593,19 +618,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             new DefaultResolutionHost(),
             taskDependencyFactory
         );
-    }
-
-    @Override
-    public FileCollection fileCollection(Closure dependencySpecClosure) {
-        warnOnDeprecatedUsage("fileCollection(Closure)", ProperMethodUsage.RESOLVABLE);
-        return fileCollection(Specs.convertClosureToSpec(dependencySpecClosure));
-    }
-
-    @Override
-    public FileCollection fileCollection(Dependency... dependencies) {
-        warnOnDeprecatedUsage("fileCollection(Dependency...)", ProperMethodUsage.RESOLVABLE);
-        Set<Dependency> deps = WrapUtil.toLinkedSet(dependencies);
-        return fileCollection(deps::contains);
     }
 
     @Override
