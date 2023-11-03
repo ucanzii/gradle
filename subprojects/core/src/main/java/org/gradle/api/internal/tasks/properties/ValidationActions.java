@@ -347,7 +347,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static ProblemBuilderDefiningCategory withProvenance(@Nullable ValueProvenance provenance, ProblemBuilderDefiningLocation baseProblem) {
         return provenance != null ?
-            baseProblem.location(provenance.getSourceUnit(), provenance.getLine(), provenance.getColumn()) :
+            baseProblem.fileLocation(provenance.getSourceUnit(), provenance.getLine(), provenance.getColumn(), null) :
             baseProblem.noLocation();
     }
 }
