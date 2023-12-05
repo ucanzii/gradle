@@ -52,7 +52,6 @@ import java.util.Properties;
 import static org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL;
 import static org.gradle.internal.classpath.transforms.CommonTypes.NO_EXCEPTIONS;
 import static org.gradle.internal.classpath.transforms.CommonTypes.STRING_TYPE;
-import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.INSTRUMENTATION_ONLY;
 import static org.objectweb.asm.Opcodes.ACC_PRIVATE;
 import static org.objectweb.asm.Opcodes.ACC_STATIC;
 import static org.objectweb.asm.Opcodes.ACC_SYNTHETIC;
@@ -181,7 +180,7 @@ public class InstrumentingClassTransform implements ClassTransform {
     }
 
     public InstrumentingClassTransform() {
-        this(INSTRUMENTATION_ONLY);
+        this(BytecodeInterceptorFilter.ALL);
     }
 
     public InstrumentingClassTransform(BytecodeInterceptorFilter interceptorFilter) {
