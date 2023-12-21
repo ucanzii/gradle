@@ -54,6 +54,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -585,17 +586,15 @@ public class ResolutionFailureHandler {
      * @return the extracted variants, sorted by name
      */
     private List<? extends VariantGraphResolveMetadata> extractVariants(GraphSelectionCandidates candidates) {
-        final List<? extends VariantGraphResolveMetadata> variants;
-        if (candidates.isUseVariants()) {
-            variants = candidates.getVariants().stream()
-                .map(VariantGraphResolveState::getMetadata)
-                .collect(Collectors.toList());
-        } else {
-            variants = new ArrayList<>(candidates.getCandidateConfigurations()); // Need non-immutable copy to sort
+        if (!candidates.isUseVariants()) {
+            return Collections.emptyList();
         }
 
-        variants.sort(Comparator.comparing(VariantGraphResolveMetadata::getName));
-        return variants;
+        return candidates.getVariants().stream()
+            .map(VariantGraphResolveState::getMetadata)
+            .sorted(Comparator.comparing(VariantGraphResolveMetadata::getName))
+            .collect(Collectors.toList());
+
     }
     // endregion Graph Variant Selection Failures
 }

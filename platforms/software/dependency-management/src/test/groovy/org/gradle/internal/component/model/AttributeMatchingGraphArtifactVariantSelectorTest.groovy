@@ -29,6 +29,7 @@ import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.internal.component.AmbiguousGraphVariantsException
+import org.gradle.internal.component.IncompatibleGraphVariantsException
 import org.gradle.internal.component.NoMatchingGraphVariantsException
 import org.gradle.internal.component.ResolutionFailureHandler
 import org.gradle.internal.component.external.model.ImmutableCapabilities
@@ -46,7 +47,6 @@ class AttributeMatchingGraphArtifactVariantSelectorTest extends Specification {
 
     private ComponentGraphResolveState targetState
     private ComponentGraphResolveMetadata targetComponent
-    private VariantGraphResolveState selected
     private ImmutableAttributes consumerAttributes = ImmutableAttributes.EMPTY
     private List<Capability> requestedCapabilities = []
     private List<IvyArtifactName> artifacts = []
@@ -63,7 +63,7 @@ class AttributeMatchingGraphArtifactVariantSelectorTest extends Specification {
         consumerAttributes('org.gradle.usage': usage)
 
         when:
-        performSelection()
+        def selected = performSelection()
 
         then:
         selected.name == expected
@@ -127,7 +127,7 @@ All of them match the consumer attributes:
         defaultConfiguration()
 
         when:
-        performSelection()
+        def selected = performSelection()
 
         then:
         selected.name == "default"
@@ -145,9 +145,11 @@ All of them match the consumer attributes:
         performSelection()
 
         then:
-        NoMatchingGraphVariantsException e = thrown()
-        failsWith(e, '''No matching configuration of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
-  - None of the consumable configurations have attributes.''')
+        IncompatibleGraphVariantsException e = thrown()
+        failsWith(e, '''Configuration 'default' in org:lib:1.0 does not match the consumer attributes
+Configuration 'default':
+  - Other compatible attribute:
+      - Doesn't say anything about org.gradle.usage (required 'cplusplus-headers')''')
     }
 
     def "can select a variant thanks to the capabilities"() {
@@ -162,7 +164,7 @@ All of them match the consumer attributes:
         requestCapability capability(cap)
 
         when:
-        performSelection()
+        def selected = performSelection()
 
         then:
         selected.name == expected
@@ -188,7 +190,7 @@ All of them match the consumer attributes:
         }
 
         when:
-        performSelection()
+        def selected = performSelection()
 
         then:
         selected.name == expected
@@ -332,7 +334,7 @@ All of them match the consumer attributes:
         consumerAttributes('org.gradle.usage': 'java-api')
 
         when:
-        performSelection()
+        def selected = performSelection()
 
         then:
         selected.name == 'first'
@@ -377,13 +379,12 @@ All of them match the consumer attributes:
         consumerAttributes('org.gradle.usage': 'java-api')
 
         when:
-        performSelection()
+        def selected = performSelection()
 
         then:
         selected.name == 'second'
 
     }
-
 
     def "should select the variant which matches the most attributes and producer doesn't have requested value"() {
         given:
@@ -398,7 +399,7 @@ All of them match the consumer attributes:
         consumerAttributes('org.gradle.usage': 'java-api', 'other': true)
 
         when:
-        performSelection()
+        def selected = performSelection()
 
         then:
         selected.name == 'second'
@@ -415,7 +416,7 @@ All of them match the consumer attributes:
         requireArtifact('foo', 'jar', 'jar', 'classy')
 
         when:
-        performSelection()
+        def selected = performSelection()
 
         then:
         selected.name == 'second'
@@ -433,7 +434,7 @@ All of them match the consumer attributes:
         requestCapability capability('first')
 
         when:
-        performSelection()
+        def selected = performSelection()
 
         then:
         selected.name == 'B' // B matches best: capabilities match exactly, attributes match exactly
@@ -455,21 +456,19 @@ All of them match the consumer attributes:
         requestCapability capability('first')
 
         when:
-        performSelection()
+        def selected = performSelection()
 
         then:
         selected.name == 'B' // B matches best: capabilities match exactly, attribute 'other' was requested and a compatible value is provided (variant C does not provide any value for 'other')
     }
 
-    private void performSelection() {
+    private VariantGraphResolveState performSelection() {
         GraphVariantSelector variantSelector = new GraphVariantSelector(new ResolutionFailureHandler(new DocumentationRegistry()))
-        selected = variantSelector.selectVariants(
-            consumerAttributes,
-            requestedCapabilities,
-            targetState,
-            attributesSchema,
-            artifacts
-        ).variants[0]
+        if (targetState.getCandidatesForGraphVariantSelection().isUseVariants()) {
+            return variantSelector.selectByAttributeMatching(consumerAttributes, requestedCapabilities, targetState, attributesSchema, artifacts)
+        } else {
+            return variantSelector.selectLegacyConfiguration(consumerAttributes, targetState, attributesSchema)
+        }
     }
 
     private void requireArtifact(String name = "foo", String type = "jar", String ext = "jar", String classifier = null) {
@@ -497,11 +496,13 @@ All of them match the consumer attributes:
     }
 
     private void defaultConfiguration(ImmutableAttributes attrs = attributes([:])) {
+        def metadata = Stub(ConfigurationGraphResolveMetadata) {
+            getName() >> 'default'
+            isCanBeConsumed() >> true
+        }
         def variant = Stub(VariantGraphResolveState) {
             getName() >> 'default'
-        }
-        def metadata = Stub(ConfigurationGraphResolveMetadata) {
-            isCanBeConsumed() >> true
+            getMetadata() >> metadata
         }
         defaultConfiguration = Stub(ConfigurationGraphResolveState) {
             getName() >> 'default'
