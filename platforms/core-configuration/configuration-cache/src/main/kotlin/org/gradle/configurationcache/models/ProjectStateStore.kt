@@ -60,7 +60,7 @@ abstract class ProjectStateStore<K, V>(
     val previousValues = ConcurrentHashMap<K, BlockAddress>()
 
     private
-    val currentValues = ConcurrentHashMap<K, CalculatedValueContainer<BlockAddress, *>>()
+    val currentValues = ConcurrentHashMap<K, CalculatedValueContainer<Pair<BlockAddress, V>, *>>()
 
     protected
     abstract fun projectPathForKey(key: K): Path?
@@ -75,7 +75,7 @@ abstract class ProjectStateStore<K, V>(
      * Collects all values used during execution
      */
     fun collectAccessedValues(): Map<K, BlockAddress> =
-        currentValues.mapValues { it.value.get() }
+        currentValues.mapValues { it.value.get().first }
 
     fun restoreFromCacheEntry(entryDetails: Map<K, BlockAddress>, checkedFingerprint: CheckedFingerprint.ProjectsInvalid) {
         for (entry in entryDetails) {
@@ -99,29 +99,41 @@ abstract class ProjectStateStore<K, V>(
         }
     }
 
+    @Suppress("UNUSED_VARIABLE")
     fun loadOrCreateValue(key: K, creator: () -> V): V {
         val valueContainer = currentValues.computeIfAbsent(key) { k ->
-            calculatedValueContainerFactory.create<BlockAddress>(displayNameFor(k)) {
+            calculatedValueContainerFactory.create<Pair<BlockAddress, V>>(displayNameFor(k)) {
                 loadPreviousOrCreateValue(k, creator)
             }
         }
 
         // Calculate the value after adding the entry to the map, so that the value container can take care of thread synchronization
         valueContainer.finalizeIfNotAlready()
-        val address = valueContainer.get()
-        return readValue(key, address)
+        val address = valueContainer.get().first
+        val originalValue = valueContainer.get().second
+        val restoredValue = readValue(key, address)
+        if (this.javaClass.simpleName == "ProjectMetadataController" && projectPathForKey(key)?.path == ":plugins") {
+            // TODO: should be able to return the deserialized value here too
+            //  To see the `reproducer` test pass, simply return the `originalValue` here
+//            return originalValue
+            return restoredValue
+        } else {
+            return restoredValue
+        }
     }
 
+    @Suppress("UNUSED_ANONYMOUS_PARAMETER")
     private
-    fun loadPreviousOrCreateValue(key: K, creator: () -> V): BlockAddress {
+    fun loadPreviousOrCreateValue(key: K, creator: () -> V): Pair<BlockAddress, V> {
         previousValues[key]?.let { previouslyCached ->
-            return previouslyCached
+            TODO("This is not relevant for the problem")
+//            return previouslyCached
         }
 
         val value = creator()
         val address = valuesStore.write(value)
         // discarding the value to get granular load-after-store behavior
-        return address
+        return address to value
     }
 
     private

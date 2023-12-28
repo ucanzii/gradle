@@ -16,7 +16,53 @@
 
 package org.gradle.configurationcache.isolated
 
+import org.gradle.tooling.model.GradleProject
+
 class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest {
+
+    def "reproducer"() {
+        settingsFile << """
+            includeBuild("plugins")
+        """
+        buildFile << """
+            plugins {
+                id("my.plugin")
+            }
+        """
+
+        file("plugins/src/main/groovy/my/MyPlugin.groovy") << """
+            package my
+            import org.gradle.api.Project
+            import org.gradle.api.Plugin
+            abstract class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                }
+            }
+        """
+        file("plugins/build.gradle") << """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+            gradlePlugin {
+                plugins {
+                    test {
+                        id = "my.plugin"
+                        implementationClass = "my.MyPlugin"
+                    }
+                }
+            }
+        """
+
+        when:
+        withIsolatedProjects()
+        def model = fetchModel(GradleProject) // fetch any model that requires evaluation of the root project build script
+
+        then:
+        // Currently fails with:
+        //   Plugin with id 'my.plugin' not found.
+        model != null
+    }
+
     def "invalidates cached state when plugin in buildSrc changes"() {
         given:
         withSomeToolingModelBuilderPluginInBuildSrc()
