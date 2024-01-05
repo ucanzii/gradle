@@ -20,6 +20,7 @@ import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
+import org.gradle.api.internal.provider.GuardedData;
 import org.gradle.api.provider.Provider;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.implement;
@@ -31,4 +32,8 @@ public class ProviderImplementationTest {
     @ArchTest
     public static final ArchRule provider_implementations_extend_abstract_minimal_provider = classes().that(implement(Provider.class))
         .should(beAssignableTo(AbstractMinimalProvider.class));
+
+    @ArchTest
+    public static final ArchRule guarded_data_implementations_should_provide_custom_toString = classes().that(implement(GuardedData.class))
+        .should(ArchUnitFixture.overrideMethod("toString", new Class<?>[0], Object.class));
 }

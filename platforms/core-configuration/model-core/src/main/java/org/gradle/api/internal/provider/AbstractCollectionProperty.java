@@ -278,7 +278,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
 
     @Override
     protected String describeContents() {
-        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, getSupplier().toString());
+        return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, getSupplier());
     }
 
     static class NoValueSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
@@ -314,6 +314,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
         }
+
+        @Override
+        public String toString() {
+            return value.toString();
+        }
     }
 
     private class EmptySupplier implements CollectionSupplier<T, C> {
@@ -341,6 +346,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         @Override
         public ValueProducer getProducer() {
             return ValueProducer.noProducer();
+        }
+
+        @Override
+        public String toString() {
+            return "[]";
         }
     }
 
@@ -376,6 +386,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         @Override
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
+        }
+
+        @Override
+        public String toString() {
+            return value.toString();
         }
     }
 
@@ -451,6 +466,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         @Override
         public ValueProducer getProducer() {
             return value.getProducer();
+        }
+
+        @Override
+        public String toString() {
+            return value.toString();
         }
     }
 
@@ -539,6 +559,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
         public ValueProducer getProducer() {
             return left.getProducer().plus(right.getProducer());
         }
+
+        @Override
+        public String toString() {
+            return left + " + " + right;
+        }
     }
 
     public void update(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends Iterable<? extends T>>, ? super Provider<C>> transform) {
@@ -609,6 +634,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>>
             try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.calculatePresence(consumer);
             }
+        }
+
+        @Override
+        public String toString() {
+            return supplier.toString();
         }
     }
 

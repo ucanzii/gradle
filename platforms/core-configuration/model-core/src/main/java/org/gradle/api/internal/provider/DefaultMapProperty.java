@@ -402,6 +402,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
         }
+
+        @Override
+        public String toString() {
+            return value.toString();
+        }
     }
 
     private class EmptySupplier implements MapSupplier<K, V> {
@@ -434,6 +439,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         @Override
         public ValueProducer getProducer() {
             return ValueProducer.noProducer();
+        }
+
+        @Override
+        public String toString() {
+            return "{}";
         }
     }
 
@@ -474,6 +484,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         @Override
         public ValueProducer getProducer() {
             return ValueProducer.unknown();
+        }
+
+        @Override
+        public String toString() {
+            return entries.toString();
         }
     }
 
@@ -576,6 +591,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         @Override
         public ValueProducer getProducer() {
             return collector.getProducer();
+        }
+
+        @Override
+        public String toString() {
+            return collector.toString();
         }
     }
 
@@ -704,6 +724,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
         public ValueProducer getProducer() {
             return left.getProducer().plus(right.getProducer());
         }
+
+        @Override
+        public String toString() {
+            return left + " + " + right;
+        }
     }
 
     private MapSupplierGuard<K, V> guard(MapSupplier<K, V> supplier) {
@@ -772,6 +797,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, Defaul
             try (EvaluationContext.ScopeContext ignore = EvaluationContext.current().open(owner)) {
                 return supplier.calculatePresence(consumer);
             }
+        }
+
+        @Override
+        public String toString() {
+            return supplier.toString();
         }
     }
 }

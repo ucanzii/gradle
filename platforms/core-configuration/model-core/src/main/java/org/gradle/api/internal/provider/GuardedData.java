@@ -64,6 +64,14 @@ public interface GuardedData<T> {
     }
 
     /**
+     * Returns the string representation of the data.
+     * The representation of the guard object is rarely interesting, so the implementor is expected to provide a custom implementation.
+     *
+     * @return string representation of the data
+     */
+    String toString();
+
+    /**
      * Restores GuardedData from parts. All interface implementation must be supported by this method.
      *
      * @param owner the owner (can be null if the data provides no convenience accessors)
