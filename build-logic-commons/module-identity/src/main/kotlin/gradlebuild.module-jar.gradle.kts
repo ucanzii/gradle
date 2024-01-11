@@ -30,12 +30,8 @@ fun configureJarTasks() {
 fun configureClasspathManifestGeneration() {
     val runtimeClasspath by configurations
     val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class) {
-        this.runtimeClasspath.from(runtimeClasspath)
-        this.externalDependencies.from(runtimeClasspath.incoming.artifactView {
-            componentFilter {
-                it is ModuleComponentIdentifier
-            }
-        }.files)
+        this.projectDependencies.from(runtimeClasspath.incoming.artifactView { componentFilter { it is ProjectComponentIdentifier } }.files)
+        this.externalDependencies.from(runtimeClasspath.incoming.artifactView { componentFilter { it is ModuleComponentIdentifier } }.files)
         this.manifestFile = moduleIdentity.baseName.map { layout.buildDirectory.file("generated-resources/$it-classpath/$it-classpath.properties").get() }
     }
     sourceSets["main"].output.dir(classpathManifest.map { it.manifestFile.get().asFile.parentFile })
