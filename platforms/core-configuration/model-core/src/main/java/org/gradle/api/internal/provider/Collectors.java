@@ -160,7 +160,7 @@ public class Collectors {
 
         @Override
         public String toString() {
-            return String.format("[*%s]", provider);
+            return String.format("item(%s)", provider);
         }
     }
 
@@ -286,7 +286,7 @@ public class Collectors {
 
         @Override
         public String toString() {
-            return String.format("*%s", provider);
+            return String.valueOf(provider);
         }
     }
 

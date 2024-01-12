@@ -141,7 +141,7 @@ public class MapCollectors {
 
         @Override
         public String toString() {
-            return String.format("{%s=*%s}", key, providerOfValue);
+            return String.format("entry{%s=%s}", key, providerOfValue);
         }
     }
 
@@ -231,7 +231,7 @@ public class MapCollectors {
 
         @Override
         public String toString() {
-            return String.format("*%s", providerOfEntries);
+            return String.valueOf(providerOfEntries);
         }
     }
 }
