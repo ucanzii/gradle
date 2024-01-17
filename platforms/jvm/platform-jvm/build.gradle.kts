@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":base-services-groovy"))
     implementation(project(":core"))
     implementation(project(":core-api"))
+    implementation(project(":core-api-jvm"))
     implementation(project(":functional"))
     implementation(project(":dependency-management"))
     implementation(project(":diagnostics"))

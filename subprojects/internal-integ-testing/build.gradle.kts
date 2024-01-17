@@ -35,6 +35,7 @@ dependencies {
         because("Exposing jvm metadata via AvailableJavaHomes")
     }
 
+    implementation(project(":core-api-jvm"))
     implementation(project(":enterprise-operations"))
     implementation(project(":messaging"))
     implementation(project(":native"))

@@ -185,6 +185,7 @@ platform("software") {
 // JVM Platform
 platform("jvm") {
     subproject("code-quality")
+    subproject("core-api-jvm")
     subproject("distributions-jvm")
     subproject("ear")
     subproject("jacoco")
