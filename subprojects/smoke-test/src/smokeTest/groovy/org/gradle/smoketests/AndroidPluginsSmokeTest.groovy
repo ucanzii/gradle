@@ -129,7 +129,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
 
         and:
-        assertConfigurationCacheStateStored()
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateStored()
+        }
 
         when: 'up-to-date build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
@@ -153,7 +155,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result.task(':app:processDebugAndroidTestManifest').outcome == TaskOutcome.UP_TO_DATE
 
         and:
-        assertConfigurationCacheStateLoaded()
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateLoaded()
+        }
 
         when: 'abi change on library'
         abiChange.run()
@@ -179,7 +183,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
 
         and:
-        assertConfigurationCacheStateLoaded()
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateLoaded()
+        }
 
         when: 'clean re-build'
         def smokeTestRunner = this.runner('clean')
@@ -213,7 +219,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result.task(':app:assembleDebug').outcome == TaskOutcome.SUCCESS
 
         and:
-        assertConfigurationCacheStateLoaded()
+        if (GradleContextualExecuter.isConfigCache()) {
+            result.assertConfigurationCacheStateLoaded()
+        }
 
         where:
         [agpVersion, ide] << [
