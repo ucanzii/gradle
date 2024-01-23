@@ -62,7 +62,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultComponentResolversFactory;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolversFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
@@ -212,7 +212,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
             registration.add(ResolveExceptionContextualizer.class);
             registration.add(ResolutionStrategyFactory.class);
-            registration.add(DefaultComponentResolversFactory.class);
+            registration.add(ComponentResolversFactory.class);
             registration.add(ConsumerProvidedVariantFinder.class);
             registration.add(DefaultVariantSelectorFactory.class);
             registration.add(DefaultConfigurationFactory.class);
