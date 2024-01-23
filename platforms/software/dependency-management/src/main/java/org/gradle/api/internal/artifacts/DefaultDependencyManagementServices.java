@@ -55,14 +55,15 @@ import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationRe
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.DefaultRootComponentMetadataBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolversFactory;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DependencyGraphResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantCache;
@@ -101,7 +102,6 @@ import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.DefaultAttributesSchema;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FilePropertyFactory;
@@ -143,7 +143,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
-import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -212,10 +211,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(DefaultRootComponentMetadataBuilder.Factory.class);
             registration.add(ResolveExceptionContextualizer.class);
             registration.add(ResolutionStrategyFactory.class);
-            registration.add(ComponentResolversFactory.class);
             registration.add(ConsumerProvidedVariantFinder.class);
             registration.add(DefaultVariantSelectorFactory.class);
             registration.add(DefaultConfigurationFactory.class);
+            registration.add(DefaultArtifactResolutionQueryFactory.class);
         }
 
         AttributesSchemaInternal createConfigurationAttributesSchema(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, PlatformSupport platformSupport) {
@@ -498,7 +497,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ConfigurationResolver createDependencyResolver(
-            ComponentResolversFactory componentResolversFactory,
             DependencyGraphResolver dependencyGraphResolver,
             RepositoriesSupplier repositoriesSupplier,
             GlobalDependencyResolutionRules metadataHandler,
@@ -523,10 +521,12 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ResolvedVariantCache resolvedVariantCache,
             GraphVariantSelector graphVariantSelector,
             ProjectStateRegistry projectStateRegistry,
-            ListenerManager listenerManager
+            ListenerManager listenerManager,
+            List<ResolverProviderFactory> resolverFactories,
+            ExternalModuleComponentResolverFactory moduleDependencyResolverFactory,
+            ProjectDependencyResolver projectDependencyResolver
         ) {
             DefaultConfigurationResolver defaultResolver = new DefaultConfigurationResolver(
-                componentResolversFactory,
                 dependencyGraphResolver,
                 repositoriesSupplier,
                 metadataHandler,
@@ -550,7 +550,10 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 resolvedVariantCache,
                 graphVariantSelector,
                 projectStateRegistry,
-                listenerManager
+                listenerManager,
+                resolverFactories,
+                moduleDependencyResolverFactory,
+                projectDependencyResolver
             );
 
             return new ErrorHandlingConfigurationResolver(
@@ -570,18 +573,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         DependencyResolutionServices createDependencyResolutionServices(ServiceRegistry services) {
             return new DefaultDependencyResolutionServices(services);
-        }
-
-        ArtifactResolutionQueryFactory createArtifactResolutionQueryFactory(ConfigurationContainerInternal configurationContainer,
-                                                                            RepositoriesSupplier repositoriesSupplier,
-                                                                            ResolveIvyFactory ivyFactory,
-                                                                            GlobalDependencyResolutionRules metadataHandler,
-                                                                            ComponentTypeRegistry componentTypeRegistry,
-                                                                            ImmutableAttributesFactory attributesFactory,
-                                                                            ArtifactTypeRegistry artifactTypeRegistry,
-                                                                            ComponentMetadataSupplierRuleExecutor executor) {
-            return new DefaultArtifactResolutionQueryFactory(configurationContainer, repositoriesSupplier, ivyFactory, metadataHandler, componentTypeRegistry, attributesFactory, artifactTypeRegistry, executor);
-
         }
 
         RepositoriesSupplier createRepositoriesSupplier(RepositoryHandler repositoryHandler, DependencyResolutionManagementInternal drm, DomainObjectContext context) {
