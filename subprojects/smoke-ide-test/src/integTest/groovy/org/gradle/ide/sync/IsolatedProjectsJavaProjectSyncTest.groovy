@@ -22,15 +22,7 @@ import org.hamcrest.core.StringContains
 class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
-    /**
-     * To run this test locally you should have Android Studio installed in /Applications/Android Studio.*.app folder,
-     * or you should set "studioHome" system property with the Android Studio installation path,
-     * or you should enable automatic download of Android Studio with the -PautoDownloadAndroidStudio=true.
-     *
-     * Additionally, you should also have ANDROID_HOME env. variable set with Android SDK (normally on MacOS it's installed in "$HOME/Library/Android/sdk").
-     *
-     * To enable headless mode run with -PrunAndroidStudioInHeadlessMode=true.
-     */
+
     def "IDEA sync has known IP violations for vanilla Java project"() {
         given:
         simpleJavaProject()
