@@ -35,37 +35,41 @@ import org.gradle.profiler.studio.AndroidStudioSyncAction
 import org.gradle.profiler.studio.invoker.StudioBuildInvocationResult
 import org.gradle.profiler.studio.invoker.StudioGradleScenarioDefinition
 import org.gradle.profiler.studio.invoker.StudioGradleScenarioInvoker
-import org.gradle.profiler.studio.tools.StudioFinder
 
+import java.nio.file.Path
 import java.util.function.Consumer
 
 abstract class AbstractSyncSmokeIdeTest extends AbstractIntegrationSpec {
 
+    private final Path ideHome = buildContext.gradleUserHomeDir.file("ide").toPath()
+
     protected StudioBuildInvocationResult syncResult
 
-    protected void androidStudioSync() {
+    protected void androidStudioSync(String version) {
         assert System.getenv("ANDROID_HOME") != null
         String androidHomePath = System.getenv("ANDROID_HOME")
 
-        def invocationSettings =
-            syncInvocationSettingsBuilder()
-                .setStudioInstallDir(StudioFinder.findStudioHome())
-                .build()
+        def invocationSettings = syncInvocationSettingsBuilder().build()
 
         sync(
+            "AI",
+            version,
+            null,
+            ideHome,
             "Android Studio sync",
             invocationSettings,
             [new LocalPropertiesMutator(invocationSettings, androidHomePath)]
         )
     }
 
-    protected void ideaSync(String ideaHome) {
-        def invocationSettings =
-            syncInvocationSettingsBuilder()
-                .setStudioInstallDir(new File(ideaHome))
-                .build()
+    protected void ideaSync(String buildType, String version) {
+        def invocationSettings = syncInvocationSettingsBuilder().build()
 
         sync(
+            "IC",
+            version,
+            buildType,
+            ideHome,
             "IDEA sync",
             invocationSettings,
             Collections.emptyList()
@@ -73,8 +77,7 @@ abstract class AbstractSyncSmokeIdeTest extends AbstractIntegrationSpec {
     }
 
     private InvocationSettings.InvocationSettingsBuilder syncInvocationSettingsBuilder() {
-        // TODO Store `guh` and the rest of dirs below outside of project dir to avoid it's indexing during a sync
-        def gradleUserHome = file("gradle-user-home")
+        def gradleUserHome = buildContext.gradleUserHomeDir
         def ideSandbox = file("ide-sandbox")
         def profilerOutput = file('profiler-output')
 
@@ -92,6 +95,10 @@ abstract class AbstractSyncSmokeIdeTest extends AbstractIntegrationSpec {
     }
 
     private void sync(
+        String ideType,
+        String ideVersion,
+        String ideBuildType,
+        Path ideHome,
         String scenarioName,
         InvocationSettings invocationSettings,
         List<BuildMutator> buildMutators
@@ -122,7 +129,11 @@ abstract class AbstractSyncSmokeIdeTest extends AbstractIntegrationSpec {
                 Collections.emptyList()
             ),
             Collections.emptyList(),
-            Collections.emptyList()
+            Collections.emptyList(),
+            ideType,
+            ideVersion,
+            ideBuildType,
+            ideHome
         )
 
         def scenarioInvoker = new StudioGradleScenarioInvoker(

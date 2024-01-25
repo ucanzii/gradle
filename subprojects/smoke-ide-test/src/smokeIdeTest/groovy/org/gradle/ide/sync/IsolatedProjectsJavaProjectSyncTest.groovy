@@ -31,12 +31,31 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
      *
      * To enable headless mode run with -PrunAndroidStudioInHeadlessMode=true.
      */
+    def "IDEA sync has known IP violations for vanilla Java project"() {
+        given:
+        simpleJavaProject()
+
+        when:
+        ideaSync("release", "2023.2.3")
+
+        then:
+        fixture.assertHtmlReportHasProblems {
+            totalProblemsCount = 74
+            withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':app' from project ':'")
+            withLocatedProblem(new StringContains("sync.studio.tooling"), "Cannot access project ':lib' from project ':'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':lib' from project ':'")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':app' from project ':'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':app' and project ':' evaluation")
+            withLocatedProblem("Plugin class 'JetGradlePlugin'", "Cannot access project ':lib' from project ':'. 'Project.evaluationDependsOn' must be used to establish a dependency between project ':lib' and project ':' evaluation")
+        }
+    }
+
     def "Android Studio sync has known IP violations for vanilla Java project"() {
         given:
         simpleJavaProject()
 
         when:
-        androidStudioSync()
+        androidStudioSync("2023.2.1.16")
 
         then:
         fixture.assertHtmlReportHasProblems {

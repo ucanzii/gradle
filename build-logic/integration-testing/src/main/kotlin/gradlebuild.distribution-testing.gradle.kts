@@ -87,7 +87,7 @@ fun DistributionTest.configureGradleTestEnvironment() {
 
 fun DistributionTest.setJvmArgsOfTestJvm() {
     jvmArgs("-Xmx${project.the<IntegrationTestExtension>().testJvmXmx.get()}", "-XX:+HeapDumpOnOutOfMemoryError")
-    if (!javaVersion.isJava8Compatible) {
-        jvmArgs("-XX:MaxPermSize=768m")
-    }
+//    if (!javaVersion.isJava8Compatible) {
+//        jvmArgs("-XX:MaxPermSize=768m")
+//    }
 }
