@@ -16,14 +16,11 @@ repositories {
     maven {
         url = uri("https://www.jetbrains.com/intellij-repository/releases")
         content {
-//            includeGroup() TODO
+            includeGroup("com.jetbrains.intellij.tools")
         }
     }
     maven {
         url = uri("https://cache-redirector.jetbrains.com/intellij-dependencies")
-        content {
-//            includeGroup() TODO
-        }
     }
 }
 
@@ -48,8 +45,7 @@ dependencies {
             because("IDE provisioning requires special version of profiler compiled with Java 17")
         }
 
-        // These deps are conflicting with the deps of `:distributions-full` project.
-        exclude("org.jetbrains.kotlin")
+        // This dep is conflicting with the version from `:distributions-full` project.
         exclude("io.grpc")
     }
     integTestDistributionRuntimeOnly(project(":distributions-full")) {
