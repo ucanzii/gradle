@@ -1,5 +1,4 @@
-import gradlebuild.integrationtests.tasks.SmokeIdeTest
-import gradlebuild.integrationtests.addDependenciesAndConfigurations
+import gradlebuild.integrationtests.tasks.IntegrationTest
 
 plugins {
     id("gradlebuild.internal.java")
@@ -34,37 +33,16 @@ tasks.withType<GroovyCompile>().configureEach {
     targetCompatibility = "17"
 }
 
-val smokeIdeTestSourceSet = sourceSets.create("smokeIdeTest") {
-    compileClasspath += sourceSets.main.get().output
-    runtimeClasspath += sourceSets.main.get().output
-}
-
-addDependenciesAndConfigurations("smokeIde")
-val smokeIdeTestImplementation: Configuration by configurations
-val smokeIdeTestDistributionRuntimeOnly: Configuration by configurations
-
-plugins.withType<IdeaPlugin> {
-    with(model) {
-        module {
-            testSources.from(smokeIdeTestSourceSet.java.srcDirs, smokeIdeTestSourceSet.groovy.srcDirs)
-            testResources.from(smokeIdeTestSourceSet.resources.srcDirs)
-        }
-    }
-}
-
-tasks.register<SmokeIdeTest>("smokeIdeTest").configure {
-    group = "Verification"
+tasks.withType<IntegrationTest>().configureEach {
     maxParallelForks = 1
     systemProperties["org.gradle.integtest.executer"] = "forking"
-    testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
-    classpath = smokeIdeTestSourceSet.runtimeClasspath
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
 dependencies {
-    smokeIdeTestImplementation(libs.gradleProfiler) {
+    integTestImplementation(libs.gradleProfiler) {
         version {
             strictly("0.21.17-alpha-3")
             because("IDE provisioning requires special version of profiler compiled with Java 17")
@@ -74,7 +52,7 @@ dependencies {
         exclude("org.jetbrains.kotlin")
         exclude("io.grpc")
     }
-    smokeIdeTestDistributionRuntimeOnly(project(":distributions-full")) {
+    integTestDistributionRuntimeOnly(project(":distributions-full")) {
         because("Tests starts an IDE with using current Gradle distribution")
     }
 }
