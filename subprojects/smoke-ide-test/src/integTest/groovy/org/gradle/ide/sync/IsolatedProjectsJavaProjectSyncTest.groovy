@@ -18,6 +18,7 @@ package org.gradle.ide.sync
 
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 import org.hamcrest.core.StringContains
+import spock.lang.Ignore
 
 class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
 
@@ -42,6 +43,7 @@ class IsolatedProjectsJavaProjectSyncTest extends AbstractSyncSmokeIdeTest {
         }
     }
 
+    @Ignore("Android Studio provisioning is work in progress")
     def "Android Studio sync has known IP violations for vanilla Java project"() {
         given:
         simpleJavaProject()
