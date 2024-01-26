@@ -51,20 +51,20 @@ abstract class AbstractSyncSmokeIdeTest extends AbstractIntegrationSpec {
     protected StudioBuildInvocationResult syncResult
 
     /**
-     * Downloads Android Studio with a passed version, if it absent in `ideHome` dir,
+     * Downloads, if it absent in `ideHome` dir, Android Studio with a passed version
      * and runs a project import to it.
      *
      * Requires ANDROID_HOME env. variable set with Android SDK (normally on MacOS it's installed in "$HOME/Library/Android/sdk").
      *
-     * Local Android Studio installation can be passed via `studioHome` system property and it's takes precedence over a
-     * version passed as a parameter.
+     * Local Android Studio installation can be passed via `studioHome` system property and it takes precedence over
+     * a version passed as a parameter.
      */
     protected void androidStudioSync(String version) {
         assert System.getenv("ANDROID_HOME") != null
         String androidHomePath = System.getenv("ANDROID_HOME")
 
         def invocationSettings =
-            syncInvocationSettingsBuilder(getIdeInstallDirFromProperty("studioHome")).build()
+            syncInvocationSettingsBuilder(getIdeInstallDirFromSystemProperty("studioHome")).build()
 
         sync(
             "AI",
@@ -78,17 +78,17 @@ abstract class AbstractSyncSmokeIdeTest extends AbstractIntegrationSpec {
     }
 
     /**
-     * Downloads Intelij IDEA with a passed version and a build type, if it absent in `ideHome` dir,
+     * Downloads, if it absent in `ideHome` dir, Intellij IDEA with a passed version and a build type,
      * and runs a project import to it.
      *
      * Available build types are: release, eap, rc
 
-     * Local IDEA installation can be passed via `ideaHome` system property and it's takes precedence over a
-     * version passed as a parameter.
+     * Local IDEA installation can be passed via `ideaHome` system property and it takes precedence over
+     * a version passed as a parameter.
      */
     protected void ideaSync(String buildType, String version) {
         def invocationSettings =
-            syncInvocationSettingsBuilder(getIdeInstallDirFromProperty("ideaHome")).build()
+            syncInvocationSettingsBuilder(getIdeInstallDirFromSystemProperty("ideaHome")).build()
 
         sync(
             "IC",
@@ -101,8 +101,9 @@ abstract class AbstractSyncSmokeIdeTest extends AbstractIntegrationSpec {
         )
     }
 
-    private File getIdeInstallDirFromProperty(String propertyName) {
-        return new File(System.getProperty(propertyName))
+    private File getIdeInstallDirFromSystemProperty(String propertyName) {
+        def dir = System.getProperty(propertyName)
+        return dir != null ? new File(dir) : null
     }
 
     private InvocationSettings.InvocationSettingsBuilder syncInvocationSettingsBuilder(File ideInstallDir) {

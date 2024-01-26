@@ -1,3 +1,4 @@
+import gradlebuild.basics.gradleProperty
 import gradlebuild.integrationtests.tasks.IntegrationTest
 
 plugins {
@@ -36,12 +37,36 @@ tasks.withType<IntegrationTest>().configureEach {
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(17)
     }
+    jvmArgumentProviders.add(
+        SmokeIdeTestSystemProperties(
+            gradleProperty("ideaHome"),
+            gradleProperty("studioHome")
+        )
+    )
 }
+
+class SmokeIdeTestSystemProperties(
+    @get:Internal
+    val ideaHome: Provider<String>,
+
+    @get:Internal
+    val studioHome: Provider<String>
+) : CommandLineArgumentProvider {
+    override fun asArguments(): MutableIterable<String> = buildList {
+        if (ideaHome.isPresent) {
+            add("-DideaHome=${ideaHome.get()}")
+        }
+        if (studioHome.isPresent) {
+            add("-DstudioHome=${studioHome.get()}")
+        }
+    }.toMutableList()
+}
+
 
 dependencies {
     integTestImplementation(libs.gradleProfiler) {
         version {
-            strictly("0.21.17-alpha-3")
+            strictly("0.21.17-alpha-5")
             because("IDE provisioning requires special version of profiler compiled with Java 17")
         }
 

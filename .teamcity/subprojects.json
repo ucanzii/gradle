@@ -850,7 +850,7 @@
     "name": "smoke-ide-test",
     "path": "subprojects/smoke-ide-test",
     "unitTests": false,
-    "functionalTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
