@@ -122,6 +122,33 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
+    public void append(T element) {
+        withActualValue(it -> it.add(element));
+    }
+
+    @Override
+    public void append(Provider<? extends T> provider) {
+        withActualValue(it -> it.add(provider));
+    }
+
+    @Override
+    @SuppressWarnings("varargs")
+    @SafeVarargs
+    public final void appendAll(T... elements) {
+        withActualValue(it -> it.addAll(elements));
+    }
+
+    @Override
+    public void appendAll(Iterable<? extends T> elements) {
+        withActualValue(it -> it.addAll(elements));
+    }
+
+    @Override
+    public void appendAll(Provider<? extends Iterable<? extends T>> provider) {
+        withActualValue(it -> it.addAll(provider));
+    }
+
+    @Override
     public int size() {
         return calculateOwnPresentValue().getWithoutSideEffect().size();
     }
@@ -560,6 +587,32 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public void addAll(Provider<? extends Iterable<? extends T>> provider) {
             addCollector(new ElementsFromCollectionProvider<>(Providers.internal(provider)));
+        }
+
+        @Override
+        public void append(Provider<? extends T> provider) {
+            add(provider);
+        }
+
+        @Override
+        public void append(T element) {
+            add(element);
+        }
+
+        @Override
+        @SafeVarargs
+        public final void appendAll(T... elements) {
+            addAll(elements);
+        }
+
+        @Override
+        public void appendAll(Provider<? extends Iterable<? extends T>> provider) {
+            addAll(provider);
+        }
+
+        @Override
+        public void appendAll(Iterable<? extends T> elements) {
+            addAll(elements);
         }
     }
 

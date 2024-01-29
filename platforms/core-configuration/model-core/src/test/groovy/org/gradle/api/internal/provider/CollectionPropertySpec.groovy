@@ -1270,9 +1270,19 @@ The value of this property is derived from: <source>""")
         given:
         property.convention(Providers.of(["1"]))
         property.withActualValue {
-            it.addAll(Providers.of(["2"]))
+            it.add(Providers.of("2"))
             it.addAll(Providers.of(["3", "4"]))
         }
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+    }
+
+    def "can add to convention value with append"() {
+        given:
+        property.convention(Providers.of(["1"]))
+        property.append(Providers.of("2"))
+        property.appendAll(Providers.of(["3", "4"]))
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
         property.explicit
@@ -1291,12 +1301,33 @@ The value of this property is derived from: <source>""")
         property.explicit
     }
 
+    def "can add to explicit value with append"() {
+        given:
+        property.set([])
+        property.appendAll(Providers.of(["1", "2"]))
+        property.appendAll(Providers.of(["3", "4"]))
+
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+    }
+
     def "can add to actual value without previous configuration"() {
         given:
         property.withActualValue {
             it.addAll(Providers.of(["1", "2"]))
             it.addAll(Providers.of(["3", "4"]))
         }
+
+        expect:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
+    }
+
+    def "can add to actual value without previous configuration with append"() {
+        given:
+        property.appendAll(Providers.of(["1", "2"]))
+        property.appendAll(Providers.of(["3", "4"]))
 
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
