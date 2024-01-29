@@ -180,6 +180,26 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         getExplicitValue().putAll(provider);
     }
 
+    @Override
+    public void insert(K key, Provider<? extends V> providerOfValue) {
+        withActualValue(it -> it.put(key, providerOfValue));
+    }
+
+    @Override
+    public void insert(K key, V value) {
+        withActualValue(it -> it.put(key, value));
+    }
+
+    @Override
+    public void insertAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
+        withActualValue(it -> it.putAll(provider));
+    }
+
+    @Override
+    public void insertAll(Map<? extends K, ? extends V> entries) {
+        withActualValue(it -> it.putAll(entries));
+    }
+
     private void addExplicitCollector(MapCollector<K, V> collector) {
         assertCanMutate();
         setSupplier(getExplicitValue(defaultValue).plus(collector));
@@ -628,6 +648,26 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
             ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
             addCollector(new EntriesFromMapProvider<>(Providers.internal(provider)));
+        }
+
+        @Override
+        public void insert(K key, V value) {
+            put(key, value);
+        }
+
+        @Override
+        public void insert(K key, Provider<? extends V> providerOfValue) {
+            put(key, providerOfValue);
+        }
+
+        @Override
+        public void insertAll(Map<? extends K, ? extends V> entries) {
+            putAll(entries);
+        }
+
+        @Override
+        public void insertAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
+            putAll(provider);
         }
     }
 

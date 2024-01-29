@@ -64,4 +64,72 @@ public interface MapPropertyConfigurer<K, V>  extends ConfigurableValue.Configur
      * @param provider the provider of the entries
      */
     void putAll(Provider<? extends Map<? extends K, ? extends V>> provider);
+
+    /**
+     * Adds a map entry to the property value.
+     *
+     * <p>
+     * Contrary to {@link #put(Object, Object)}, this method operates on the
+     * actual value of the property, be it defined via a convention or explicit value.
+     * </p>
+     *
+     * @param key the key
+     * @param value the value
+     *
+     * @since 8.7
+     */
+    @Incubating
+    void insert(K key, V value);
+
+    /**
+     * Adds a map entry to the property value.
+     *
+     * <p>
+     * Contrary to {@link #put(Object, Provider)}, this method operates on the
+     * actual value of the property, be it defined via a convention or explicit value.
+     * </p>
+     *
+     * <p>The given provider will be queried when the value of this property is queried.
+     * This property will have no value when the given provider has no value.
+     *
+     * @param key the key
+     * @param providerOfValue the provider of the value
+     *
+     * @since 8.7
+     */
+    @Incubating
+    void insert(K key, Provider<? extends V> providerOfValue);
+
+    /**
+     * Adds all entries from another {@link Map} to the property value.
+     *
+     * <p>
+     * Contrary to {@link #putAll(Map)}, this method operates on the
+     * actual value of the property, be it defined via a convention or explicit value.
+     * </p>
+     *
+     * @param entries a {@link Map} containing the entries to add
+     *
+     * @since 8.7
+     */
+    @Incubating
+    void insertAll(Map<? extends K, ? extends V> entries);
+
+    /**
+     * Adds all entries from another {@link Map} to the property value.
+     *
+     * <p>The given provider will be queried when the value of this property is queried.
+     * This property will have no value when the given provider has no value.
+     *
+     * <p>
+     * Contrary to {@link #putAll(Provider)}, this method operates on the
+     * actual value of the property, be it defined via a convention or explicit value.
+     * </p>
+     *
+     * @param provider the provider of the entries
+     *
+     * @since 8.7
+     */
+    @Incubating
+    void insertAll(Provider<? extends Map<? extends K, ? extends V>> provider);
 }
