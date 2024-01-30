@@ -1273,9 +1273,17 @@ The value of this property is derived from: <source>""")
             it.add(Providers.of("2"))
             it.addAll(Providers.of(["3", "4"]))
         }
+
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
         property.explicit
+
+        when:
+        property.unset()
+
+        then:
+        assertValueIs toImmutable(["1"])
+        !property.explicit
     }
 
     def "can add to convention value with append"() {
@@ -1283,9 +1291,17 @@ The value of this property is derived from: <source>""")
         property.convention(Providers.of(["1"]))
         property.append(Providers.of("2"))
         property.appendAll(Providers.of(["3", "4"]))
+
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
         property.explicit
+
+        when:
+        property.unset()
+
+        then:
+        assertValueIs toImmutable(["1"])
+        !property.explicit
     }
 
     def "can add to explicit value"() {
@@ -1322,6 +1338,13 @@ The value of this property is derived from: <source>""")
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
         property.explicit
+
+        when:
+        property.convention(Providers.of("0"))
+
+        then:
+        assertValueIs toImmutable(["1", "2", "3", "4"])
+        property.explicit
     }
 
     def "can add to actual value without previous configuration with append"() {
@@ -1332,5 +1355,25 @@ The value of this property is derived from: <source>""")
         expect:
         assertValueIs toImmutable(["1", "2", "3", "4"])
         property.explicit
+    }
+
+    def "can alternate append and add"() {
+        when:
+        property.append("1")
+        property.add("2")
+        property.append("3")
+
+        then:
+        assertValueIs toImmutable(["1", "2", "3"])
+    }
+
+    def "can alternate add and append"() {
+        when:
+        property.add("1")
+        property.append("2")
+        property.add("3")
+
+        then:
+        assertValueIs toImmutable(["1", "2", "3"])
     }
 }

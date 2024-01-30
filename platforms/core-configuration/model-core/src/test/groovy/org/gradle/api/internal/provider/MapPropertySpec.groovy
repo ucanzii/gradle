@@ -1209,9 +1209,17 @@ The value of this property is derived from: <source>""")
             it.putAll(['k1': '2', 'k2': '3'])
             it.put('k2', '4')
         }
+
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        assert property.explicit
+        property.explicit
+
+        when:
+        property.unset()
+
+        then:
+        assertValueIs(['k0': '1'])
+        !property.explicit
     }
 
     def "may configure incrementally based on convention value using insert"() {
@@ -1219,9 +1227,17 @@ The value of this property is derived from: <source>""")
         property.convention(['k0': '1'])
         property.insertAll(['k1': '2', 'k2': '3'])
         property.insert('k2', '4')
+
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
-        assert property.explicit
+        property.explicit
+
+        when:
+        property.unset()
+
+        then:
+        assertValueIs(['k0': '1'])
+        !property.explicit
     }
 
     def "may configure explicit value incrementally"() {
@@ -1243,6 +1259,7 @@ The value of this property is derived from: <source>""")
         property.insert('k0', '1')
         property.insertAll(['k1': '2', 'k2': '3'])
         property.insert('k2', '4')
+
         expect:
         assertValueIs(['k0': '1', 'k1': '2', 'k2': '4'])
         assert property.explicit
@@ -1439,6 +1456,28 @@ The value of this property is derived from: <source>""")
 
         then:
         1 * transform.transform(_)
+    }
+
+    def "can alternate insert and put"() {
+        when:
+        property.insert("k1", "1")
+        property.put("k2", "2")
+        property.insert("k3", "3")
+        property.put("k2", "4")
+
+        then:
+        assertValueIs(['k1': '1', 'k2': '4', 'k3': '3'])
+    }
+
+    def "can alternate put and insert"() {
+        when:
+        property.put("k1", "1")
+        property.insert("k2", "2")
+        property.put("k3", "3")
+        property.insert("k2", "4")
+
+        then:
+        assertValueIs(['k1': '1', 'k2': '4', 'k3': '3'])
     }
 
     static class MapPropertyCircularChainEvaluationTest extends PropertySpec.PropertyCircularChainEvaluationSpec<Map<String, String>> {
