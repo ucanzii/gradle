@@ -512,6 +512,10 @@ public class BuildOperationTrace implements Stoppable {
         }
     }
 
+    private static class FilteringBuildOperationListener implements BuildOperationListener {
+        ˆ
+    }
+
     private static class LoggingBuildOperationListener implements BuildOperationListener {
 
         private final Consumer<SerializedOperation> logger;
