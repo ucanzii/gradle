@@ -25,7 +25,7 @@ import java.util.Map;
 /**
  * Interface for describing structured information about a problem.
  */
-public interface Problem {
+public interface ProblemReport {
     /**
      * Returns the problem category.
      *

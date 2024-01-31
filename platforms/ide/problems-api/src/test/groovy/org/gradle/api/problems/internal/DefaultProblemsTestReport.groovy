@@ -18,7 +18,7 @@ package org.gradle.api.problems.internal
 
 import spock.lang.Specification
 
-class DefaultProblemsTest extends Specification {
+class DefaultProblemsTestReport extends Specification {
 
     def "using org.gradle core namespace is not allowed on the public API"() {
         def emitter = Mock(ProblemEmitter)

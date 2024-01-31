@@ -35,5 +35,5 @@ public interface ProblemTransformer {
      * @param id the operation id associated with the problem
      * @return the transformed problem
      */
-    Problem transform(Problem problem, OperationIdentifier id);
+    ProblemReport transform(ProblemReport problem, OperationIdentifier id);
 }

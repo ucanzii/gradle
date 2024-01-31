@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
@@ -91,7 +91,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         }
         if (problemsService != null) {
             InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-            Problem problem = reporter.create(new Action<InternalProblemSpec>() {
+            ProblemReport problem = reporter.create(new Action<InternalProblemSpec>() {
                 @Override
                 public void execute(InternalProblemSpec builder) {
                     ProblemSpec problemSpec = builder

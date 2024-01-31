@@ -29,14 +29,14 @@ import org.gradle.api.problems.internal.DocLink;
 import org.gradle.api.problems.internal.FileLocation;
 import org.gradle.api.problems.internal.LineInFileLocation;
 import org.gradle.api.problems.internal.OffsetInFileLocation;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.ProblemReport;
 import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.api.problems.internal.DefaultFileLocation;
 import org.gradle.api.problems.internal.DefaultLineInFileLocation;
 import org.gradle.api.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.api.problems.internal.DefaultPluginIdLocation;
-import org.gradle.api.problems.internal.DefaultProblem;
+import org.gradle.api.problems.internal.DefaultProblemReport;
 import org.gradle.api.problems.internal.DefaultProblemCategory;
 import org.gradle.api.problems.internal.DefaultTaskPathLocation;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -55,10 +55,10 @@ import java.util.stream.Stream;
 public class ValidationProblemSerialization {
     private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
-    public static List<? extends Problem> parseMessageList(String lines) {
+    public static List<? extends ProblemReport> parseMessageList(String lines) {
         Gson gson = GSON_BUILDER.create();
-        Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
-        return gson.<List<DefaultProblem>>fromJson(lines, type);
+        Type type = new TypeToken<List<DefaultProblemReport>>() {}.getType();
+        return gson.<List<DefaultProblemReport>>fromJson(lines, type);
     }
 
     public static GsonBuilder createGsonBuilder() {
@@ -72,7 +72,7 @@ public class ValidationProblemSerialization {
         return gsonBuilder;
     }
 
-    public static Stream<String> toPlainMessage(List<? extends Problem> problems) {
+    public static Stream<String> toPlainMessage(List<? extends ProblemReport> problems) {
         return problems.stream()
             .map(problem -> problem.getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }

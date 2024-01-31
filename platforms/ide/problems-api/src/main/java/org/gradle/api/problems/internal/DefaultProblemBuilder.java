@@ -39,7 +39,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private final Map<String, Object> additionalData;
     private boolean collectLocation = false;
 
-    public DefaultProblemBuilder(Problem problem) {
+    public DefaultProblemBuilder(ProblemReport problem) {
         this.label = problem.getLabel();
         this.category = problem.getCategory();
         this.severity = problem.getSeverity();
@@ -59,7 +59,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public Problem build() {
+    public ProblemReport build() {
         // Label is mandatory
         if (label == null) {
             return missingLabelProblem();
@@ -77,20 +77,20 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             }
         }
 
-        return new DefaultProblem(label, getSeverity(), locations, docLink, details, solutions, getExceptionForProblemInstantiation(), category, additionalData);
+        return new DefaultProblemReport(label, getSeverity(), locations, docLink, details, solutions, getExceptionForProblemInstantiation(), category, additionalData);
     }
 
-    private Problem missingLabelProblem() {
+    private ProblemReport missingLabelProblem() {
         return invalidProblem("problem label must be specified", "missing-label");
     }
 
-    private Problem missingCategoryProblem() {
+    private ProblemReport missingCategoryProblem() {
         return invalidProblem("problem category must be specified", "missing-category");
     }
 
-    private Problem invalidProblem(String label, String subcategory) {
+    private ProblemReport invalidProblem(String label, String subcategory) {
         category("validation", "problems-api", subcategory).stackLocation();
-        return new DefaultProblem(label, Severity.WARNING, Collections.<ProblemLocation>emptyList(), null, null, null, getExceptionForProblemInstantiation(), category, Collections.<String, Object>emptyMap());
+        return new DefaultProblemReport(label, Severity.WARNING, Collections.<ProblemLocation>emptyList(), null, null, null, getExceptionForProblemInstantiation(), category, Collections.<String, Object>emptyMap());
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {

@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblem implements Serializable, Problem {
+public class DefaultProblemReport implements Serializable, ProblemReport {
     private final String label;
     private Severity severity;
     private final List<ProblemLocation> locations;
@@ -39,7 +39,7 @@ public class DefaultProblem implements Serializable, Problem {
     private final ProblemCategory problemCategory;
     private final Map<String, Object> additionalData;
 
-    protected DefaultProblem(
+    protected DefaultProblemReport(
         String label,
         Severity severity,
         List<ProblemLocation> locations,
@@ -128,7 +128,7 @@ public class DefaultProblem implements Serializable, Problem {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultProblem that = (DefaultProblem) o;
+        DefaultProblemReport that = (DefaultProblemReport) o;
         return equals(label, that.label) &&
             severity == that.severity &&
             equals(locations, that.locations) &&

@@ -21,7 +21,7 @@ import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Specification
 
-class DefaultProblemTest extends Specification {
+class DefaultProblemReportTest extends Specification {
     def "unbound builder result is equal to original"() {
         def problem = createTestProblem(severity, additionalData)
 
@@ -69,11 +69,11 @@ class DefaultProblemTest extends Specification {
         newProblem.locations == problem.locations
         newProblem.severity == problem.severity
         newProblem.solutions == ["solution"]
-        newProblem.class == DefaultProblem
+        newProblem.class == DefaultProblemReport
     }
 
     private static createTestProblem(Severity severity, Map<String, String> additionalData) {
-        new DefaultProblem("message",
+        new DefaultProblemReport("message",
             severity,
             [],
             Documentation.userManual("id"),
@@ -86,7 +86,7 @@ class DefaultProblemTest extends Specification {
 
     def "unbound basic builder result is DefaultProblem"() {
         given:
-        def problem = new DefaultProblem("message",
+        def problem = new DefaultProblemReport("message",
             Severity.WARNING,
             [],
             Documentation.userManual("id"),
@@ -101,6 +101,6 @@ class DefaultProblemTest extends Specification {
         def newProblem = problem.toBuilder().build()
 
         then:
-        newProblem.class == DefaultProblem
+        newProblem.class == DefaultProblemReport
     }
 }
