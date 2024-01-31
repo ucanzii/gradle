@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,21 @@
 
 package org.gradle.api.problems.internal;
 
-public class DefaultProblemProgressDetails implements ProblemProgressDetails {
-    private final DefaultProblem problem; // TODO (donat) this is just a prototype of course, we need to clean this up
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
 
-    public DefaultProblemProgressDetails(Problem problem) {
-        this.problem = (DefaultProblem) problem;
-    }
+public interface ProblemContext {
 
-    public ProblemContext getProblemContext() {
-        return problem;
-    }
+    String getContextualLabel();
 
-    public ProblemDescription getProblemDescription() {
-        return problem;
-    }
+    @Nullable
+    String getDetails();
+
+    List<ProblemLocation> getLocations();
+
+    @Nullable
+    RuntimeException getException();
+
+    Map<String, Object> getAdditionalData();
 }

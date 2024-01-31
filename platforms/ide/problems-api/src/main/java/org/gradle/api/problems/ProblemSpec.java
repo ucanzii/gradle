@@ -30,6 +30,13 @@ public interface ProblemSpec {
 
     /**
      * Declares a short message for this problem.
+     * TODO expectation for the label: static data, doesn't contain anything contextual.
+     * Example label:
+     * Build service 'KotlinToolingDiagnosticsCollector' is being used by task ':build-logic:kotlin-dsl:checkKotlinGradlePluginConfigurationErrors' without the corresponding declaration via 'Task#usesService'. This behavior has been deprecated.
+     * should be
+     * Build service was used by task without...
+     * And the original label should be reported via InternalProblemSpec.contextualLabel(String)
+     *
      * <p>
      * The label is the main, human-readable representation of the problem.
      * It is a mandatory property to configure when emitting a problem with {@link ProblemReporter}.

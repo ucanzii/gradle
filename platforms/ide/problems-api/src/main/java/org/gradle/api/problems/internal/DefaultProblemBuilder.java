@@ -29,6 +29,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     private final String namespace;
     private String label;
+    private String contextualLabel;
     private ProblemCategory category;
     private Severity severity;
     private final List<ProblemLocation> locations;
@@ -41,6 +42,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     public DefaultProblemBuilder(Problem problem) {
         this.label = problem.getLabel();
+        this.contextualLabel = problem.getContextualLabel();
         this.category = problem.getCategory();
         this.severity = problem.getSeverity();
         this.locations = new ArrayList<ProblemLocation>(problem.getLocations());
@@ -77,7 +79,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             }
         }
 
-        return new DefaultProblem(label, getSeverity(), locations, docLink, details, solutions, getExceptionForProblemInstantiation(), category, additionalData);
+        return new DefaultProblem(label, contextualLabel, getSeverity(), locations, docLink, details, solutions, getExceptionForProblemInstantiation(), category, additionalData);
     }
 
     private Problem missingLabelProblem() {
@@ -90,7 +92,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     private Problem invalidProblem(String label, String subcategory) {
         category("validation", "problems-api", subcategory).stackLocation();
-        return new DefaultProblem(label, Severity.WARNING, Collections.<ProblemLocation>emptyList(), null, null, null, getExceptionForProblemInstantiation(), category, Collections.<String, Object>emptyMap());
+        return new DefaultProblem(label, contextualLabel, Severity.WARNING, Collections.<ProblemLocation>emptyList(), null, null, null, getExceptionForProblemInstantiation(), category, Collections.<String, Object>emptyMap());
     }
 
     public RuntimeException getExceptionForProblemInstantiation() {
@@ -107,6 +109,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     public InternalProblemBuilder label(String label) {
         this.label = label;
+        return this;
+    }
+
+    @Override
+    public InternalProblemBuilder contextualLabel(String contextualLabel) {
+        this.contextualLabel = contextualLabel;
         return this;
     }
 

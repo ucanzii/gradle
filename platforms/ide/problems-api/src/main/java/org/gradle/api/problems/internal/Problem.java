@@ -41,6 +41,13 @@ public interface Problem {
     String getLabel();
 
     /**
+     * TODO The contextual label. Occurrence-specific.
+     *
+     * @return
+     */
+    String getContextualLabel();
+
+    /**
      * A long description detailing the problem.
      * <p>
      * Details can elaborate on the problem, and provide more information about the problem.
@@ -71,7 +78,8 @@ public interface Problem {
     /**
      * A list of possible solutions the user can try to fix the problem.
      */
-    List<String> getSolutions();
+    List<String> getSolutions(); // TODO (donat) can only define generic advice. We should also consider context-specific advice
+
 
     /**
      * The exception that caused the problem.
