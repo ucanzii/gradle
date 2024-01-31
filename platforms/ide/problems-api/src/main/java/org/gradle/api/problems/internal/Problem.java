@@ -85,4 +85,9 @@ public interface Problem {
      * The only supported value type is {@link String}.
      */
     Map<String, Object> getAdditionalData();
+
+    /**
+     * Returns a problem builder with fields initialized with values from this instance.
+     */
+    InternalProblemBuilder toBuilder();
 }

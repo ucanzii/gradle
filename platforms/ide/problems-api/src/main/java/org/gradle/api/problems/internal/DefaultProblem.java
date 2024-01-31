@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblem implements InternalProblem, Serializable {
+public class DefaultProblem implements Serializable, Problem {
     private final String label;
     private Severity severity;
     private final List<ProblemLocation> locations;

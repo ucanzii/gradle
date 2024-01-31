@@ -18,7 +18,6 @@ package org.gradle.problems.internal.transformers;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultPluginManager.OperationDetails;
-import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.Problem;
 import org.gradle.internal.operations.BuildOperationAncestryTracker;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -36,7 +35,7 @@ public class PluginIdLocationTransformer extends BaseLocationTransformer {
     }
 
     @Override
-    public Problem transform(InternalProblem problem, OperationIdentifier id) {
+    public Problem transform(Problem problem, OperationIdentifier id) {
         return getExecuteTask(OperationDetails.class, id)
             .map(executeOpId -> {
                 try {
