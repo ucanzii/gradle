@@ -114,14 +114,7 @@ public class Collectors {
         @Override
         public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
             ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
-            if (value.isMissing()) {
-                visitor.execute(ExecutionTimeValue.missing());
-            } else if (value.hasFixedValue()) {
-                // transform preserving side effects
-                visitor.execute(ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
-            } else {
-                visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
-            }
+            visitValue(visitor, value);
         }
 
         @Override
@@ -149,6 +142,17 @@ public class Collectors {
         @Override
         public int size() {
             return 1;
+        }
+    }
+
+    private static <T> void visitValue(Action<? super ValueSupplier.ExecutionTimeValue<? extends Iterable<? extends T>>> visitor, ValueSupplier.ExecutionTimeValue<? extends T> value) {
+        if (value.isMissing()) {
+            visitor.execute(ValueSupplier.ExecutionTimeValue.missing());
+        } else if (value.hasFixedValue()) {
+            // transform preserving side effects
+            visitor.execute(ValueSupplier.ExecutionTimeValue.value(value.toValue().transform(ImmutableList::of)));
+        } else {
+            visitor.execute(ValueSupplier.ExecutionTimeValue.changingValue(value.getChangingValue().map(transformer(ImmutableList::of))));
         }
     }
 
@@ -218,12 +222,7 @@ public class Collectors {
         @Override
         public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             Value<? extends Iterable<? extends T>> value = provider.calculateValue(consumer);
-            if (value.isMissing()) {
-                return value.asType();
-            }
-
-            collector.addAll(value.getWithoutSideEffect(), collection);
-            return Value.present().withSideEffect(SideEffect.fixedFrom(value));
+            return collectEntriesFromValue(collector, collection, value);
         }
 
         @Override
@@ -266,6 +265,15 @@ public class Collectors {
                 throw new UnsupportedOperationException();
             }
         }
+    }
+
+    private static <T> ValueSupplier.Value<Void> collectEntriesFromValue(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection, ValueSupplier.Value<? extends Iterable<? extends T>> value) {
+        if (value.isMissing()) {
+            return value.asType();
+        }
+
+        collector.addAll(value.getWithoutSideEffect(), collection);
+        return ValueSupplier.Value.present().withSideEffect(ValueSupplier.SideEffect.fixedFrom(value));
     }
 
     public static class ElementsFromArray<T> implements Collector<T> {
@@ -370,6 +378,58 @@ public class Collectors {
         @Override
         public int hashCode() {
             return Objects.hashCode(type, delegate);
+        }
+    }
+
+    public static class PlusCollector<T> implements Collector<T> {
+        private final Collector<T> left;
+        private final Collector<T> right;
+        private final boolean ignoreAbsent;
+
+        public PlusCollector(Collector<T> left, Collector<T> right, boolean ignoreAbsent) {
+            this.left = left;
+            this.right = right;
+            this.ignoreAbsent = ignoreAbsent;
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return
+                ignoreAbsent ?
+                    (left.calculatePresence(consumer) || right.calculatePresence(consumer))
+                    :
+                    (left.calculatePresence(consumer) && right.calculatePresence(consumer));
+        }
+
+        @Override
+        public int size() {
+            return left.size() + right.size();
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
+            if (leftValue.isMissing() && !ignoreAbsent) {
+                return leftValue;
+            }
+            Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
+            if (rightValue.isMissing() && (!ignoreAbsent || leftValue.isMissing())) {
+                return rightValue;
+            }
+            return Value.present()
+                .withSideEffect(SideEffect.fixedFrom(leftValue))
+                .withSideEffect(SideEffect.fixedFrom(rightValue));
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            left.calculateExecutionTimeValue(visitor);
+            right.calculateExecutionTimeValue(visitor);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return left.getProducer().plus(right.getProducer());
         }
     }
 }

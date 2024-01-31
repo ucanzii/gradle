@@ -24,6 +24,7 @@ import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
+import org.gradle.api.internal.provider.Collectors.PlusCollector;
 import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.provider.CollectionPropertyConfigurer;
 import org.gradle.api.provider.HasMultipleValues;
@@ -40,7 +41,6 @@ import java.util.function.Supplier;
 public abstract class AbstractCollectionProperty<T, C extends Collection<T>> extends AbstractProperty<C, CollectionSupplier<T, C>>
     implements CollectionPropertyInternal<T, C> {
 
-    private static final CollectionSupplier<Object, Collection<Object>> NO_VALUE = new NoValueSupplier<>(Value.missing());
     private final Class<? extends Collection> collectionType;
     private final Class<T> elementType;
     private final Supplier<ImmutableCollection.Builder<T>> collectionFactory;
@@ -62,11 +62,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private CollectionSupplier<T, C> emptySupplier() {
-        return new EmptySupplier();
+        return new EmptySupplier(false);
     }
 
     private CollectionSupplier<T, C> noValueSupplier() {
-        return Cast.uncheckedCast(NO_VALUE);
+        return Cast.uncheckedCast(new NoValueSupplier<>(Value.missing()));
     }
 
     /**
@@ -74,14 +74,14 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     protected abstract C emptyCollection();
 
-    public CollectionPropertyConfigurer<T> getExplicitValue() {
-        return new ExplicitValueConfigurer();
+    public CollectionPropertyConfigurer<T> getExplicitValue(boolean ignoreAbsent) {
+        return new ExplicitValueConfigurer(ignoreAbsent);
     }
 
     @Override
     public HasMultipleValues<T> withActualValue(Action<CollectionPropertyConfigurer<T>> action) {
         setToConventionIfUnset();
-        action.execute(getExplicitValue());
+        action.execute(getExplicitValue(true));
         return this;
     }
 
@@ -96,29 +96,29 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public void add(final T element) {
-        getExplicitValue().add(element);
+        getExplicitValue(false).add(element);
     }
 
     @Override
     public void add(final Provider<? extends T> providerOfElement) {
-        getExplicitValue().add(providerOfElement);
+        getExplicitValue(false).add(providerOfElement);
     }
 
     @Override
     @SafeVarargs
     @SuppressWarnings("varargs")
     public final void addAll(T... elements) {
-        getExplicitValue().addAll(elements);
+        getExplicitValue(false).addAll(elements);
     }
 
     @Override
     public void addAll(Iterable<? extends T> elements) {
-        getExplicitValue().addAll(elements);
+        getExplicitValue(false).addAll(elements);
     }
 
     @Override
     public void addAll(Provider<? extends Iterable<? extends T>> provider) {
-        getExplicitValue().addAll(provider);
+        getExplicitValue(false).addAll(provider);
     }
 
     @Override
@@ -153,9 +153,19 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         return calculateOwnPresentValue().getWithoutSideEffect().size();
     }
 
-    private void addExplicitCollector(Collector<T> collector) {
+    /**
+     * Adds the given supplier as the new root supplier for this collection.
+     *
+     * @param collector
+     * @param ignoreAbsent whether elements that are missing values should be ignored
+     */
+    private void addExplicitCollector(Collector<T> collector, boolean ignoreAbsent) {
         assertCanMutate();
-        setSupplier(getExplicitValue(defaultValue).plus(collector));
+        CollectionSupplier<T, C> explicitValue = getExplicitValue(defaultValue);
+        if (ignoreAbsent) {
+            explicitValue = explicitValue.ignoringAbsent();
+        }
+        setSupplier(explicitValue.plus(collector));
     }
 
     @Nullable
@@ -289,12 +299,17 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, describeValue());
     }
 
-    static class NoValueSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
+    class NoValueSupplier<T, C extends Collection<? extends T>> implements CollectionSupplier<T, C> {
         private final Value<? extends C> value;
 
         public NoValueSupplier(Value<? extends C> value) {
             assert value.isMissing();
             this.value = value.asType();
+        }
+
+        @Override
+        public CollectionSupplier<T, C> ignoringAbsent() {
+            return Cast.uncheckedCast(emptySupplier().ignoringAbsent());
         }
 
         @Override
@@ -325,6 +340,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private class EmptySupplier implements CollectionSupplier<T, C> {
+        private final boolean ignoreAbsent;
+
+        private EmptySupplier(boolean ignoreAbsent) {
+            this.ignoreAbsent = ignoreAbsent;
+        }
+
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return true;
@@ -338,7 +359,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
             // empty + something = something
-            return new CollectingSupplier(collector);
+            return new CollectingSupplier(collector, ignoreAbsent);
+        }
+
+        @Override
+        public CollectionSupplier<T, C> ignoringAbsent() {
+            return ignoreAbsent ? this : new EmptySupplier(true);
         }
 
         @Override
@@ -359,6 +385,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         public FixedSupplier(C value, @Nullable SideEffect<? super C> sideEffect) {
             this.value = value;
             this.sideEffect = sideEffect;
+        }
+
+        @Override
+        public CollectionSupplier<T, C> ignoringAbsent() {
+            return this;
         }
 
         @Override
@@ -389,9 +420,15 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     private class CollectingSupplier implements CollectionSupplier<T, C> {
         private final Collector<T> value;
+        private final boolean ignoreAbsent;
+
+        public CollectingSupplier(Collector<T> value, boolean ignoreAbsent) {
+            this.value = value;
+            this.ignoreAbsent = ignoreAbsent;
+        }
 
         public CollectingSupplier(Collector<T> value) {
-            this.value = value;
+            this(value, false);
         }
 
         @Override
@@ -412,7 +449,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public CollectionSupplier<T, C> plus(Collector<T> collector) {
-            return new CollectingSupplier(new PlusCollector<>(value, collector));
+            return new CollectingSupplier(new PlusCollector<>(value, collector, ignoreAbsent), ignoreAbsent);
+        }
+
+        @Override
+        public CollectionSupplier<T, C> ignoringAbsent() {
+            return ignoreAbsent ? this : new CollectingSupplier(value, true);
         }
 
         @Override
@@ -432,19 +474,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             }
 
             if (fixed) {
-                ImmutableCollection.Builder<T> builder = collectionFactory.get();
-                SideEffectBuilder<C> sideEffectBuilder = SideEffect.builder();
-                for (ExecutionTimeValue<? extends Iterable<? extends T>> value : values) {
-                    builder.addAll(value.getFixedValue());
-                    sideEffectBuilder.add(SideEffect.fixedFrom(value));
-                }
-
-                ExecutionTimeValue<C> mergedValue = ExecutionTimeValue.fixedValue(Cast.uncheckedNonnullCast(builder.build()));
-                if (changingContent) {
-                    mergedValue = mergedValue.withChangingContent();
-                }
-
-                return mergedValue.withSideEffect(sideEffectBuilder.build());
+                return getFixedExecutionTimeValue(values, changingContent);
             }
 
             // At least one of the values is a changing value
@@ -456,12 +486,31 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             return ExecutionTimeValue.changingValue(new CollectingProvider<>(AbstractCollectionProperty.this.getType(), providers, collectionFactory));
         }
 
+        private ExecutionTimeValue<C> getFixedExecutionTimeValue(List<ExecutionTimeValue<? extends Iterable<? extends T>>> values, boolean changingContent) {
+            ImmutableCollection.Builder<T> builder = collectionFactory.get();
+            SideEffectBuilder<C> sideEffectBuilder = SideEffect.builder();
+            for (ExecutionTimeValue<? extends Iterable<? extends T>> value : values) {
+                builder.addAll(value.getFixedValue());
+                sideEffectBuilder.add(SideEffect.fixedFrom(value));
+            }
+
+            ExecutionTimeValue<C> mergedValue = ExecutionTimeValue.fixedValue(Cast.uncheckedNonnullCast(builder.build()));
+            if (changingContent) {
+                mergedValue = mergedValue.withChangingContent();
+            }
+
+            return mergedValue.withSideEffect(sideEffectBuilder.build());
+        }
+
         @Override
         public ValueProducer getProducer() {
             return value.getProducer();
         }
     }
 
+    /**
+     * A provider for a collection type whose elements are themselves providers.
+     */
     private static class CollectingProvider<T, C extends Collection<? extends T>> extends AbstractMinimalProvider<C> {
         private final Class<C> type;
         private final List<ProviderInternal<? extends Iterable<? extends T>>> providers;
@@ -499,53 +548,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
             Value<? extends C> resultValue = Value.of(Cast.uncheckedNonnullCast(builder.build()));
             return resultValue.withSideEffect(sideEffectBuilder.build());
-        }
-    }
-
-    private static class PlusCollector<T> implements Collector<T> {
-        private final Collector<T> left;
-        private final Collector<T> right;
-
-        public PlusCollector(Collector<T> left, Collector<T> right) {
-            this.left = left;
-            this.right = right;
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return left.calculatePresence(consumer) && right.calculatePresence(consumer);
-        }
-
-        @Override
-        public int size() {
-            return left.size() + right.size();
-        }
-
-        @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
-            Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
-            if (leftValue.isMissing()) {
-                return leftValue;
-            }
-            Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
-            if (rightValue.isMissing()) {
-                return rightValue;
-            }
-
-            return Value.present()
-                .withSideEffect(SideEffect.fixedFrom(leftValue))
-                .withSideEffect(SideEffect.fixedFrom(rightValue));
-        }
-
-        @Override
-        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
-            left.calculateExecutionTimeValue(visitor);
-            right.calculateExecutionTimeValue(visitor);
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return left.getProducer().plus(right.getProducer());
         }
     }
 
@@ -617,9 +619,15 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     private class ExplicitValueConfigurer extends Configurer {
+        private final boolean ignoreAbsent;
+
+        public ExplicitValueConfigurer(boolean ignoreAbsent) {
+            this.ignoreAbsent = ignoreAbsent;
+        }
+
         @Override
         protected void addCollector(Collector<T> collector) {
-            addExplicitCollector(collector);
+            addExplicitCollector(collector, ignoreAbsent);
         }
     }
 }

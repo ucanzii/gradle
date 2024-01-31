@@ -1357,6 +1357,17 @@ The value of this property is derived from: <source>""")
         property.explicit
     }
 
+    def "adding via append is undefined-safe"() {
+        given:
+        property.unset()
+        property.appendAll(Providers.of(["1", "2"]))
+        property.append(Providers.notDefined())
+        property.appendAll(Providers.of(["4"]))
+
+        expect:
+        property.getOrNull() == toImmutable(["1", "2", "4"])
+    }
+
     def "can alternate append and add"() {
         when:
         property.append("1")
