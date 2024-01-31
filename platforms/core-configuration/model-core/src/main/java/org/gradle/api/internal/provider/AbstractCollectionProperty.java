@@ -433,7 +433,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
         @Override
         public boolean calculatePresence(ValueConsumer consumer) {
-            return value.calculatePresence(consumer);
+            return ignoreAbsent || value.calculatePresence(consumer);
         }
 
         @Override
@@ -441,7 +441,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             // TODO - don't make a copy when the collector already produces an immutable collection
             ImmutableCollection.Builder<T> builder = collectionFactory.get();
             Value<Void> result = value.collectEntries(consumer, valueCollector, builder);
-            if (result.isMissing()) {
+            if (!ignoreAbsent && result.isMissing()) {
                 return result.asType();
             }
             return Value.of(Cast.<C>uncheckedNonnullCast(builder.build())).withSideEffect(SideEffect.fixedFrom(result));

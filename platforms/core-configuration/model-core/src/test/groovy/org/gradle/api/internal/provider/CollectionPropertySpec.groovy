@@ -1368,6 +1368,22 @@ The value of this property is derived from: <source>""")
         property.getOrNull() == toImmutable(["1", "2", "4"])
     }
 
+    def "adding a missing element provider via append is undefined-safe"() {
+        given:
+        property.append(Providers.notDefined())
+
+        expect:
+        assertValueIs toImmutable([])
+    }
+
+    def "adding a missing list provider via append is undefined-safe"() {
+        given:
+        property.appendAll(Providers.notDefined())
+
+        expect:
+        assertValueIs toImmutable([])
+    }
+
     def "can alternate append and add"() {
         when:
         property.append("1")
