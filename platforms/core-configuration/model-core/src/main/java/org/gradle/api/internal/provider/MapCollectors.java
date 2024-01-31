@@ -214,4 +214,60 @@ public class MapCollectors {
             return providerOfEntries.getProducer();
         }
     }
+
+    public static class PlusCollector<K, V> implements MapCollector<K, V> {
+        private final MapCollector<K, V> left;
+        private final MapCollector<K, V> right;
+        private final boolean ignoreAbsent;
+
+        public PlusCollector(MapCollector<K, V> left, MapCollector<K, V> right, boolean ignoreAbsent) {
+            this.left = left;
+            this.right = right;
+            this.ignoreAbsent = ignoreAbsent;
+        }
+
+        @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return ignoreAbsent ?
+                left.calculatePresence(consumer) || right.calculatePresence(consumer) :
+                left.calculatePresence(consumer) && right.calculatePresence(consumer);
+        }
+
+        @Override
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
+            if (leftValue.isMissing() && !ignoreAbsent) {
+                return leftValue;
+            }
+            Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
+            if (rightValue.isMissing() && (!ignoreAbsent || leftValue.isMissing())) {
+                return rightValue;
+            }
+
+            return Value.present()
+                .withSideEffect(SideEffect.fixedFrom(leftValue))
+                .withSideEffect(SideEffect.fixedFrom(rightValue));
+        }
+
+        @Override
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            Value<Void> leftResult = left.collectKeys(consumer, collector, dest);
+            if (leftResult.isMissing() && !ignoreAbsent) {
+                return leftResult;
+            }
+            Value<Void> rightResult = right.collectKeys(consumer, collector, dest);
+            return rightResult.isMissing() ? leftResult : rightResult;
+        }
+
+        @Override
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            left.calculateExecutionTimeValue(visitor);
+            right.calculateExecutionTimeValue(visitor);
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return left.getProducer().plus(right.getProducer());
+        }
+    }
 }

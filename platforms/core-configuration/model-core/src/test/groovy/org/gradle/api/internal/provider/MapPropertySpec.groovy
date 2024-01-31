@@ -1307,6 +1307,33 @@ The value of this property is derived from: <source>""")
         property.explicit
     }
 
+    def "inserting via insert is undefined-safe"() {
+        given:
+        property.unset()
+        property.insertAll(Providers.of(['k0': '1']))
+        property.insert('k1', Providers.notDefined())
+        property.insertAll(Providers.of(['k2': '3']))
+
+        expect:
+        assertValueIs(['k0': '1', 'k2': '3'])
+    }
+
+    def "adding a missing value provider via append is undefined-safe"() {
+        given:
+        property.insert("k1", Providers.notDefined())
+
+        expect:
+        assertValueIs([:])
+    }
+
+    def "adding a missing map provider via append is undefined-safe"() {
+        given:
+        property.insertAll(Providers.notDefined())
+
+        expect:
+        assertValueIs([:])
+    }
+
     def "can set explicit value to convention"() {
         given:
         property.convention(['k0': '1'])

@@ -26,5 +26,10 @@ interface MapSupplier<K, V> extends ValueSupplier {
 
     MapSupplier<K, V> plus(MapCollector<K, V> collector);
 
+    /**
+     * Returns a view of this supplier that ignores any entries that are missing values.
+     */
+    MapSupplier<K, V> ignoringAbsent();
+
     ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue();
 }
