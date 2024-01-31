@@ -39,11 +39,6 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder contextualLabel(String contextualLabel) {
-        return validateDelegate(delegate).contextualLabel(contextualLabel);
-    }
-
-    @Override
     public InternalProblemBuilder label(String label) {
         return validateDelegate(delegate).label(label);
     }

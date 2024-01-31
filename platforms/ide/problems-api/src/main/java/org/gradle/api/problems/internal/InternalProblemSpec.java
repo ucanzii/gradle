@@ -21,8 +21,6 @@ import org.gradle.api.problems.Severity;
 
 public interface InternalProblemSpec extends ProblemSpec {
 
-    InternalProblemSpec contextualLabel(String contextualLabel);
-
     /**
      * Specifies arbitrary data associated with this problem.
      * <p>
@@ -40,6 +38,7 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @return this
      */
     InternalProblemSpec taskPathLocation(String buildTreePath);
+
 
     /**
      * Declares the documentation for this problem.

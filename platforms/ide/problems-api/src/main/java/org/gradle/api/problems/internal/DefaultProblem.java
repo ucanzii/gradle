@@ -28,9 +28,8 @@ import java.util.List;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultProblem implements InternalProblem, ProblemContext, ProblemDescription, Serializable {
+public class DefaultProblem implements InternalProblem, Serializable {
     private final String label;
-    private final String contextualLabel;
     private Severity severity;
     private final List<ProblemLocation> locations;
     private final DocLink documentationLink;
@@ -42,7 +41,6 @@ public class DefaultProblem implements InternalProblem, ProblemContext, ProblemD
 
     protected DefaultProblem(
         String label,
-        @Nullable String contextualLabel,
         Severity severity,
         List<ProblemLocation> locations,
         @Nullable DocLink documentationUrl,
@@ -53,8 +51,6 @@ public class DefaultProblem implements InternalProblem, ProblemContext, ProblemD
         Map<String, Object> additionalData
     ) {
         this.label = label;
-        // TODO (donat) handle case where contextual label is not null; we probably just want to delegate to getLabel()
-        this.contextualLabel = contextualLabel == null ? label : contextualLabel;
         this.severity = severity;
         this.locations = ImmutableList.copyOf(locations);
         this.documentationLink = documentationUrl;
@@ -68,11 +64,6 @@ public class DefaultProblem implements InternalProblem, ProblemContext, ProblemD
     @Override
     public String getLabel() {
         return label;
-    }
-
-    @Override
-    public String getContextualLabel() {
-        return contextualLabel;
     }
 
     @Override
@@ -139,7 +130,6 @@ public class DefaultProblem implements InternalProblem, ProblemContext, ProblemD
         }
         DefaultProblem that = (DefaultProblem) o;
         return equals(label, that.label) &&
-            equals(contextualLabel, that.contextualLabel) &&
             severity == that.severity &&
             equals(locations, that.locations) &&
             equals(problemCategory, that.problemCategory) &&
@@ -152,7 +142,7 @@ public class DefaultProblem implements InternalProblem, ProblemContext, ProblemD
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{label, contextualLabel, severity, locations, documentationLink, description, solutions, cause, additionalData});
+        return Arrays.hashCode(new Object[]{label, severity, locations, documentationLink, description, solutions, cause, additionalData});
     }
 
 }

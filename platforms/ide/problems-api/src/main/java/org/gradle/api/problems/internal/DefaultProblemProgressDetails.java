@@ -17,17 +17,13 @@
 package org.gradle.api.problems.internal;
 
 public class DefaultProblemProgressDetails implements ProblemProgressDetails {
-    private final DefaultProblem problem; // TODO (donat) this is just a prototype of course, we need to clean this up
+    private final Problem problem;
 
     public DefaultProblemProgressDetails(Problem problem) {
-        this.problem = (DefaultProblem) problem;
+        this.problem = problem;
     }
 
-    public ProblemContext getProblemContext() {
-        return problem;
-    }
-
-    public ProblemDescription getProblemDescription() {
+    public Problem getProblem() {
         return problem;
     }
 }

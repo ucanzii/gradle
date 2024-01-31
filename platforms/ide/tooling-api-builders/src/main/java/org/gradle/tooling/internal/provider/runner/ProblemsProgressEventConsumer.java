@@ -24,9 +24,8 @@ import org.gradle.api.problems.internal.FileLocation;
 import org.gradle.api.problems.internal.LineInFileLocation;
 import org.gradle.api.problems.internal.OffsetInFileLocation;
 import org.gradle.api.problems.internal.PluginIdLocation;
+import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.ProblemCategory;
-import org.gradle.api.problems.internal.ProblemContext;
-import org.gradle.api.problems.internal.ProblemDescription;
 import org.gradle.api.problems.internal.ProblemLocation;
 import org.gradle.api.problems.internal.TaskPathLocation;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
@@ -89,26 +88,25 @@ public class ProblemsProgressEventConsumer extends ClientForwardingBuildOperatio
 
     private Optional<InternalProblemEvent> createProblemEvent(OperationIdentifier buildOperationId, @Nullable Object details) {
         if (details instanceof DefaultProblemProgressDetails) {
-            ProblemContext context = ((DefaultProblemProgressDetails) details).getProblemContext();
-            ProblemDescription description = ((DefaultProblemProgressDetails) details).getProblemDescription();
-            return of(createProblemEvent(buildOperationId, context, description));
+            Problem problem = ((DefaultProblemProgressDetails) details).getProblem();
+            return of(createProblemEvent(buildOperationId, problem));
         }
         return empty();
     }
 
-    private DefaultProblemEvent createProblemEvent(OperationIdentifier buildOperationId, ProblemContext context, ProblemDescription description) {
+    private DefaultProblemEvent createProblemEvent(OperationIdentifier buildOperationId, Problem problem) {
         return new DefaultProblemEvent(
             cerateDefaultProblemDescriptor(buildOperationId),
             new DefaultProblemDetails(
-                toInternalCategory(description.getCategory()),
-                toInternalLabel(description.getLabel()),
-                toInternalDetails(context.getDetails()),
-                toInternalSeverity(description.getSeverity()),
-                toInternalLocations(context.getLocations()),
-                toInternalDocumentationLink(description.getDocumentationLink()),
-                toInternalSolutions(description.getSolutions()),
-                toInternalAdditionalData(context.getAdditionalData()),
-                toInternalFailure(context.getException())
+                toInternalCategory(problem.getCategory()),
+                toInternalLabel(problem.getLabel()),
+                toInternalDetails(problem.getDetails()),
+                toInternalSeverity(problem.getSeverity()),
+                toInternalLocations(problem.getLocations()),
+                toInternalDocumentationLink(problem.getDocumentationLink()),
+                toInternalSolutions(problem.getSolutions()),
+                toInternalAdditionalData(problem.getAdditionalData()),
+                toInternalFailure(problem.getException())
             )
         );
     }

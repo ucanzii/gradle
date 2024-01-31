@@ -28,9 +28,6 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     Problem build();
 
     @Override
-    InternalProblemBuilder contextualLabel(String contextualLabel);
-
-    @Override
     InternalProblemBuilder taskPathLocation(String buildTreePath);
 
     @Override
