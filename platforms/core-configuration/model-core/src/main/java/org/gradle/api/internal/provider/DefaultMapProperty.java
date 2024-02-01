@@ -288,7 +288,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         } else if (value.hasFixedValue()) {
             setSupplier(new FixedSupplier<>(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
         } else {
-            setSupplier(new CollectingSupplier(new EntriesFromMapProvider<>(value.getChangingValue()), false));
+            CollectingProvider<K, V> asCollectingProvider = uncheckedNonnullCast(value.getChangingValue());
+            setSupplier(new CollectingSupplier(new EntriesFromMapProvider<>(asCollectingProvider), asCollectingProvider.ignoreAbsent));
         }
     }
 
@@ -563,7 +564,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             ExecutionTimeValue<Map<K, V>> fixedOrMissing = fixedOrMissingValueOf(execTimeValues);
             return fixedOrMissing != null
                 ? fixedOrMissing
-                : ExecutionTimeValue.changingValue(new CollectingProvider<>(execTimeValues));
+                : ExecutionTimeValue.changingValue(new CollectingProvider<>(execTimeValues, ignoreAbsent));
         }
 
         /**
@@ -594,8 +595,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         private List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> collectExecutionTimeValues() {
             List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values = new ArrayList<>();
-            collector.calculateExecutionTimeValue(values::add);
+            collector.calculateExecutionTimeValue(ignoreAbsent ? it -> absentIgnoringAdd(values, it) : values::add);
             return values;
+        }
+
+        private void absentIgnoringAdd(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> target, ExecutionTimeValue<? extends Map<? extends K, ? extends V>> element) {
+            if (!element.isMissing()) {
+                target.add(element);
+            }
         }
 
         private ImmutableMap<K, V> collectEntries(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values, SideEffectBuilder<? super Map<K, V>> sideEffectBuilder) {
@@ -619,9 +626,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private static class CollectingProvider<K, V> extends AbstractMinimalProvider<Map<K, V>> {
         private final List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values;
+        private final boolean ignoreAbsent;
 
-        public CollectingProvider(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values) {
+        public CollectingProvider(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values, boolean ignoreAbsent) {
             this.values = values;
+            this.ignoreAbsent = ignoreAbsent;
         }
 
         @Nullable
@@ -642,10 +651,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
             for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> executionTimeValue : values) {
                 Value<? extends Map<? extends K, ? extends V>> value = executionTimeValue.toProvider().calculateValue(consumer);
                 if (value.isMissing()) {
-                    return Value.missing();
+                    if (!ignoreAbsent) {
+                        return Value.missing();
+                    }
+                } else {
+                    entries.putAll(value.getWithoutSideEffect());
+                    sideEffectBuilder.add(SideEffect.fixedFrom(value));
                 }
-                entries.putAll(value.getWithoutSideEffect());
-                sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
 
             return Value.of(ImmutableMap.copyOf(entries)).withSideEffect(sideEffectBuilder.build());

@@ -1310,9 +1310,9 @@ The value of this property is derived from: <source>""")
     def "inserting via insert is undefined-safe"() {
         given:
         property.unset()
-        property.insertAll(Providers.of(['k0': '1']))
-        property.insert('k1', Providers.notDefined())
-        property.insertAll(Providers.of(['k2': '3']))
+        property.put('k0', '1')
+        property.put('k1', Providers.notDefined())
+        property.insert('k2', '3')
 
         expect:
         assertValueIs(['k0': '1', 'k2': '3'])
@@ -1332,6 +1332,43 @@ The value of this property is derived from: <source>""")
 
         expect:
         assertValueIs([:])
+    }
+
+    def "property remains undefined-safe after restored"() {
+        given:
+        property.putAll(supplierWithChangingExecutionTimeValues([a: '1', b: '2'], [a: '1b'], [a: '2b'], [a: '3b']))
+        property.putAll(supplierWithValues([c: '3']))
+        property.put("d", Providers.notDefined())
+        property.put("e", "5")
+        property.insert("f", "6")
+        property.put("g", Providers.notDefined())
+
+        when:
+        def property2 = property()
+        property2.fromState(property.calculateExecutionTimeValue())
+
+        then:
+        assertValueIs([a: '1', b: '2', c: '3', e: '5', f: '6'], property2)
+
+        when:
+        property2.insert("h", "8")
+
+        then:
+        assertValueIs([a: '1b', c: '3', e: '5', f: '6', h: '8'], property2)
+
+        when:
+        def property3 = property()
+        property3.fromState(property2.calculateExecutionTimeValue())
+
+        then:
+        assertValueIs([a: '2b', c: '3', e: '5', f: '6', h: '8'], property3)
+
+        when:
+        property3.put("i", Providers.notDefined())
+        property3.insert("j", "10")
+
+        then:
+        assertValueIs([a: '3b', c: '3', e: '5', f: '6', h: '8', j: '10'], property3)
     }
 
     def "can set explicit value to convention"() {
@@ -1384,7 +1421,7 @@ The value of this property is derived from: <source>""")
         return brokenSupplier(String)
     }
 
-    private void assertValueIs(Map<String, String> expected) {
+    private void assertValueIs(Map<String, String> expected, MapProperty<String, String> property = this.property) {
         assert property.present
         def actual = property.get()
         assertImmutable(actual)
