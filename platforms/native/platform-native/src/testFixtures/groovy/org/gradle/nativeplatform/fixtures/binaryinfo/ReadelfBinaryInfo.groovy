@@ -61,30 +61,38 @@ class ReadelfBinaryInfo implements BinaryInfo {
 
     @Override
     List<Symbol> listDebugSymbols() {
-        def process = ['readelf', '--debug-dump=info', binaryFile.absolutePath].execute()
+        def process = ['readelf', '--debug-dump=decodedline', binaryFile.absolutePath].execute()
         def lines = process.inputStream.readLines()
         return readSymbols(lines)
     }
 
+    /**
+     * This parses the command-line output of readelf --debug-dump=decodedline
+     *
+     * This output lists the source file for an object followed by a header (File name ...)
+     *
+     * Other lines also look like source files, so we only consider a file to be a
+     * source file when it's followed by the header.
+     *
+     * @return list of symbols representing the source files included in the binary
+     */
     @VisibleForTesting
     static List<Symbol> readSymbols(List<String> lines) {
         def symbols = []
 
-        boolean foundCompilationUnit = false
+        String seenFile = null
         lines.each { line ->
-            if (line.contains("DW_TAG_compile_unit")) {
-                foundCompilationUnit = true
+            if (seenFile) {
+                if (line.startsWith("File name")) {
+                    symbols << new Symbol(seenFile, 'D' as char, true)
+                }
+                seenFile = null
             } else {
-                if (foundCompilationUnit) {
-                    def findSymbol = (line =~ /.*DW_AT_name\s+:\s+(\(.*\):)?\s+(.*)/)
-                    if (findSymbol.matches()) {
-                        def name = new File(findSymbol[0][2] as String).name.trim()
-                        symbols << new Symbol(name, 'D' as char, true)
-                        foundCompilationUnit = false
-                    }
+                if (line.endsWith(":")) {
+                    def possibleFile = new File(line - ":")
+                    seenFile = possibleFile.name
                 }
             }
-
         }
         return symbols
     }
