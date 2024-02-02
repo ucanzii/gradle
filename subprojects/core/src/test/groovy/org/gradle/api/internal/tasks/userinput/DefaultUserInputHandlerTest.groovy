@@ -25,6 +25,8 @@ import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.util.function.Function
+
 class DefaultUserInputHandlerTest extends Specification {
 
     private static final String TEXT = 'Accept license?'
@@ -499,10 +501,13 @@ Enter selection (default: 11!) [1..3] """)
     }
 
     def "user is prompted lazily when provider value is queried and the result memoized"() {
+        def action = Mock(Function)
+
         when:
-        def input = userInputHandler.askUser { it.askQuestion("thing?", "value") }
+        def input = userInputHandler.askUser(action)
 
         then:
+        0 * action._
         0 * outputEventBroadcaster._
         0 * userInputHandler._
 
@@ -510,12 +515,16 @@ Enter selection (default: 11!) [1..3] """)
         def result = input.get()
 
         then:
+        1 * action.apply(_) >> { UserQuestions questions -> questions.askQuestion("thing?", "value") }
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "thing? (default: value):" }
         1 * userInputReader.readInput() >> "42"
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
+
+        and:
+        0 * action._
         0 * outputEventBroadcaster._
         0 * userInputHandler._
 
@@ -526,11 +535,45 @@ Enter selection (default: 11!) [1..3] """)
         def result2 = input.get()
 
         then:
+        0 * action._
         0 * outputEventBroadcaster._
         0 * userInputHandler._
 
         and:
         result2 == "42"
+    }
+
+    def "memoizes interaction failure"() {
+        def action = Mock(Function)
+        def failure = new RuntimeException("broken")
+        def input = userInputHandler.askUser(action)
+
+        when:
+        input.get()
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+
+        and:
+        1 * action.apply(_) >> { throw failure }
+
+        and:
+        0 * action._
+        0 * outputEventBroadcaster._
+        0 * userInputHandler._
+
+        when:
+        input.get()
+
+        then:
+        def e2 = thrown(RuntimeException)
+        e2 == failure
+
+        and:
+        0 * action._
+        0 * outputEventBroadcaster._
+        0 * userInputHandler._
     }
 
     def "can ask multiple questions in multiple interactions"() {

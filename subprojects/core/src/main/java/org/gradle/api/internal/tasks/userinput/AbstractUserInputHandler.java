@@ -18,15 +18,29 @@ package org.gradle.api.internal.tasks.userinput;
 
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Try;
 
 import java.util.function.Function;
 
 public abstract class AbstractUserInputHandler implements UserInputHandler {
     @Override
     public <T> Provider<T> askUser(Function<? super UserQuestions, ? extends T> interaction) {
-        return Providers.changing((Providers.SerializableCallable<T>) () -> {
-            try (CloseableUserQuestions userQuestions = newInteraction()) {
-                return interaction.apply(userQuestions);
+        return Providers.changing(new Providers.SerializableCallable<T>() {
+            Try<T> result;
+
+            @Override
+            public T call() {
+                if (result == null) {
+                    try {
+                        try (CloseableUserQuestions userQuestions = AbstractUserInputHandler.this.newInteraction()) {
+                            T interactionResult = interaction.apply(userQuestions);
+                            result = Try.successful(interactionResult);
+                        }
+                    } catch (Throwable t) {
+                        result = Try.failure(t);
+                    }
+                }
+                return result.get();
             }
         });
     }
