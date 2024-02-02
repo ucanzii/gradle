@@ -176,7 +176,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         run("askYesNo")
 
         then:
-        !outputContains(YES_NO_PROMPT)
+        outputDoesNotContain(YES_NO_PROMPT)
         outputContains("result = <default>")
     }
 
@@ -226,7 +226,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         run("askBoolean")
 
         then:
-        !outputContains(BOOLEAN_PROMPT)
+        outputDoesNotContain(BOOLEAN_PROMPT)
         outputContains("result = true")
     }
 
@@ -250,7 +250,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         run("askInt")
 
         then:
-        !outputContains(INT_PROMPT)
+        outputDoesNotContain(INT_PROMPT)
         outputContains("result = 3")
     }
 
@@ -336,7 +336,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         run("selectOption")
 
         then:
-        !outputContains(SELECT_PROMPT)
+        outputDoesNotContain(SELECT_PROMPT)
         outputContains("result = b")
     }
 
@@ -390,7 +390,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         run("ask")
 
         then:
-        !outputContains(QUESTION_PROMPT)
+        outputDoesNotContain(QUESTION_PROMPT)
         outputContains("result = thing")
     }
 
