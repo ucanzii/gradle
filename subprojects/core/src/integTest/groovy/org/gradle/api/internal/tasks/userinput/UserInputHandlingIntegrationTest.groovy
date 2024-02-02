@@ -86,7 +86,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
         then:
         result.output.count(YES_NO_PROMPT) == 1
-        result.output.contains("result = true")
+        outputContains("result = true")
 
         where:
         richConsole << VALID_BOOLEAN_CHOICES
@@ -101,7 +101,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
         then:
         result.output.count(YES_NO_PROMPT) == 1
-        result.output.contains("result = <default>")
+        outputContains("result = <default>")
 
         where:
         richConsole << VALID_BOOLEAN_CHOICES
@@ -113,7 +113,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
         then:
         result.output.count(YES_NO_PROMPT) == 1
-        result.output.contains("result = $accepted")
+        outputContains("result = $accepted")
 
         where:
         input | stdin | accepted
@@ -168,7 +168,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
         then:
         result.output.count(YES_NO_PROMPT) == 1
-        result.output.contains("result = true")
+        outputContains("result = true")
     }
 
     def "does not prompt user for yes/no question in non-interactive build"() {
@@ -176,8 +176,8 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         run("askYesNo")
 
         then:
-        !result.output.contains(YES_NO_PROMPT)
-        result.output.contains("result = <default>")
+        !outputContains(YES_NO_PROMPT)
+        outputContains("result = <default>")
     }
 
     def "can ask boolean question and handle valid input '#stdin' in interactive build"() {
@@ -186,7 +186,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
         then:
         result.output.count(BOOLEAN_PROMPT) == 1
-        result.output.contains("result = $accepted")
+        outputContains("result = $accepted")
 
         where:
         stdin | accepted
@@ -226,8 +226,8 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         run("askBoolean")
 
         then:
-        !result.output.contains(BOOLEAN_PROMPT)
-        result.output.contains("result = true")
+        !outputContains(BOOLEAN_PROMPT)
+        outputContains("result = true")
     }
 
     def "can ask int question and handle valid input '#stdin' in interactive build"() {
@@ -236,7 +236,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
         then:
         result.output.count(INT_PROMPT) == 1
-        result.output.contains("result = $accepted")
+        outputContains("result = $accepted")
 
         where:
         stdin | accepted
@@ -250,8 +250,8 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         run("askInt")
 
         then:
-        !result.output.contains(INT_PROMPT)
-        result.output.contains("result = 3")
+        !outputContains(INT_PROMPT)
+        outputContains("result = 3")
     }
 
     def "can select option in interactive build [rich console: #richConsole]"() {
@@ -263,11 +263,11 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
         then:
         result.output.count(SELECT_PROMPT) == 1
-        result.output.contains("1: a")
-        result.output.contains("2: b")
-        result.output.contains("3: c")
-        result.output.contains("Enter selection (default: b) [1..3] ")
-        result.output.contains("result = a")
+        outputContains("1: a")
+        outputContains("2: b")
+        outputContains("3: c")
+        outputContains("Enter selection (default: b) [1..3] ")
+        outputContains("result = a")
 
         where:
         richConsole << VALID_BOOLEAN_CHOICES
@@ -282,7 +282,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
         then:
         result.output.count(SELECT_PROMPT) == 1
-        result.output.contains("result = b")
+        outputContains("result = b")
 
         where:
         richConsole << VALID_BOOLEAN_CHOICES
@@ -293,7 +293,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         runWithInput("selectOption", input)
 
         then:
-        result.output.contains("result = $accepted")
+        outputContains("result = $accepted")
 
         where:
         input | accepted
@@ -336,8 +336,8 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         run("selectOption")
 
         then:
-        !result.output.contains(SELECT_PROMPT)
-        result.output.contains("result = b")
+        !outputContains(SELECT_PROMPT)
+        outputContains("result = b")
     }
 
     def "can answer text question in interactive build [rich console: #richConsole]"() {
@@ -349,7 +349,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
         then:
         result.output.count(QUESTION_PROMPT) == 1
-        result.output.contains("result = answer")
+        outputContains("result = answer")
 
         where:
         richConsole << VALID_BOOLEAN_CHOICES
@@ -364,7 +364,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
         then:
         result.output.count(QUESTION_PROMPT) == 1
-        result.output.contains("result = thing")
+        outputContains("result = thing")
 
         where:
         richConsole << VALID_BOOLEAN_CHOICES
@@ -376,7 +376,7 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
 
         then:
         result.output.count(QUESTION_PROMPT) == 1
-        result.output.contains("result = $accepted")
+        outputContains("result = $accepted")
 
         where:
         input   | accepted
@@ -390,8 +390,8 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         run("ask")
 
         then:
-        !result.output.contains(QUESTION_PROMPT)
-        result.output.contains("result = thing")
+        !outputContains(QUESTION_PROMPT)
+        outputContains("result = thing")
     }
 
     def "task can declare user prompt as input property"() {
