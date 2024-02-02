@@ -42,6 +42,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         file("c/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
+        waitForChangesToBePickedUp()
 
         when:
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
@@ -84,6 +85,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
                 }
             }
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -119,6 +122,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         file("b/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
+        waitForChangesToBePickedUp()
 
         when:
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
@@ -154,6 +158,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         file("a/build.gradle") << """
             // Some change
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -188,6 +194,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             def otherProject = project(':a')
             myExtension.message = otherProject.myExtension.message
         """
+        waitForChangesToBePickedUp()
 
         when:
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
@@ -223,6 +230,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         file("b/build.gradle") << """
             // some change
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -256,6 +265,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         file("a/build.gradle") << """
             myExtension.message = "new message"
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -292,6 +303,7 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
             def otherProject = project(':a')
             myExtension.message = otherProject.myExtension.message
         """
+        waitForChangesToBePickedUp()
 
         when:
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT)
@@ -327,6 +339,8 @@ class IsolatedProjectsToolingApiCoupledProjectsIntegrationTest extends AbstractI
         file("b/build.gradle") << """
             // some change
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI, WARN_PROBLEMS_CLI_OPT, "-Dorg.gradle.internal.invalidate-coupled-projects=false")
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 

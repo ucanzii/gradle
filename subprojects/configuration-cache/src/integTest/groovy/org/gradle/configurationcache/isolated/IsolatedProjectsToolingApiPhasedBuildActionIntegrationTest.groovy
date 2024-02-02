@@ -84,6 +84,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         buildFile << """
             // some change
         """
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def models3 = runPhasedBuildAction(new FetchPartialCustomModelForEachProject(), new FetchCustomModelForEachProject())

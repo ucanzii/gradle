@@ -30,6 +30,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
+        waitForChangesToBePickedUp()
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -65,6 +66,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
             // change source
             class Thing { }
         """
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())
@@ -102,6 +104,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
                 id("my.plugin")
             }
         """
+        waitForChangesToBePickedUp()
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -137,6 +140,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
             // change source
             class Thing { }
         """
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())
@@ -177,6 +181,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
                 id("my.plugin")
             }
         """
+        waitForChangesToBePickedUp()
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -211,6 +216,7 @@ class IsolatedProjectsToolingApiCompositeBuildsIntegrationTest extends AbstractI
         file("libs/build.gradle") << """
             // some change
         """
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProjectInTree())

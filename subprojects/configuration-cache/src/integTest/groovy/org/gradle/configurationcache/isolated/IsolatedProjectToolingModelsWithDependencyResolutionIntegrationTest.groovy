@@ -82,6 +82,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         file("a/build.gradle") << """
             // some change
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -157,6 +159,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
                 implementation(project(":b"))
             }
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -193,6 +197,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         file("a/build.gradle") << """
             // some change
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -270,6 +276,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
                 implementation(project(":b"))
             }
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -306,6 +314,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         file("a/build.gradle") << """
             // some change
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -382,6 +392,7 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
 
         when:
         file("a/build.gradle").replace('implementation(project(":b"))', "")
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
@@ -418,6 +429,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         file("a/build.gradle") << """
             // some change
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -496,6 +509,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         file("c/build.gradle") << """
             // some change
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -531,6 +546,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
         file("b/build.gradle") << """
             // some change
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
 
@@ -620,6 +637,8 @@ class IsolatedProjectToolingModelsWithDependencyResolutionIntegrationTest extend
                 implementation(project(":d"))
             }
         """
+        waitForChangesToBePickedUp()
+
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 

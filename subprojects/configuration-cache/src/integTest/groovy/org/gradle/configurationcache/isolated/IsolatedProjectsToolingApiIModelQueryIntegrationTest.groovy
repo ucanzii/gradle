@@ -67,6 +67,7 @@ class IsolatedProjectsToolingApiIModelQueryIntegrationTest extends AbstractIsola
         buildFile << """
             myExtension.message = 'this is the root project'
         """
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def model3 = fetchModel()

@@ -74,6 +74,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         buildFile << """
             myExtension.message = 'this is the root project'
         """
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
@@ -108,6 +109,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         file("a/build.gradle") << """
             myExtension.message = 'this is project a'
         """
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def model5 = runBuildAction(new FetchCustomModelForEachProject())
@@ -141,6 +143,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
+        waitForChangesToBePickedUp()
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -175,6 +178,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         settingsFile << """
             println("some new stuff")
         """
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
@@ -223,6 +227,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         file("b/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
+        waitForChangesToBePickedUp()
 
         when:
         executer.withArguments(ENABLE_CLI, "-Pshared-input=12", "-Da-input=14")
@@ -346,6 +351,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
+        waitForChangesToBePickedUp()
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -383,6 +389,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         buildFile << """
             myExtension.message = 'this is the root project'
         """
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
@@ -427,6 +434,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         file("a/build.gradle") << """
             plugins.apply(my.MyPlugin)
         """
+        waitForChangesToBePickedUp()
 
         when:
         executer.withArguments(ENABLE_CLI)
@@ -460,6 +468,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         buildFile << """
             println("changed")
         """
+        waitForChangesToBePickedUp()
 
         executer.withArguments(ENABLE_CLI)
         def model3 = runBuildAction(new FetchCustomModelForEachProject())

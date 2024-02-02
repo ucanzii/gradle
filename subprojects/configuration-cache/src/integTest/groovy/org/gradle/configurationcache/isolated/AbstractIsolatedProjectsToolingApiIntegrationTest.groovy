@@ -18,9 +18,10 @@ package org.gradle.configurationcache.isolated
 
 import org.gradle.configurationcache.fixtures.ToolingApiBackedGradleExecuter
 import org.gradle.configurationcache.fixtures.ToolingApiSpec
+import org.gradle.integtests.fixtures.FileSystemWatchingFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 
-class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ToolingApiSpec {
+class AbstractIsolatedProjectsToolingApiIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements ToolingApiSpec, FileSystemWatchingFixture {
     @Override
     GradleExecuter createExecuter() {
         return new ToolingApiBackedGradleExecuter(distribution, temporaryFolder)
