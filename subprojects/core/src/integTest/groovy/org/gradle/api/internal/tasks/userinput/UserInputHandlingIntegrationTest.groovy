@@ -16,7 +16,8 @@
 
 package org.gradle.api.internal.tasks.userinput
 
-
+import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.util.internal.TextUtil
 
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.EOF
@@ -25,7 +26,7 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.YES
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.writeToStdInAndClose
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrationTest {
+class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrationTest implements TasksWithInputsAndOutputs {
     private static final int INTERACTIVE_WAIT_TIME_SECONDS = 60
     private static final List<Boolean> VALID_BOOLEAN_CHOICES = [false, true]
     private static final String YES_NO_PROMPT = "thing? [yes, no]"
@@ -429,6 +430,49 @@ class UserInputHandlingIntegrationTest extends AbstractUserInputHandlerIntegrati
         gradleHandle.waitForFinish()
         !gradleHandle.standardOutput.contains(SELECT_PROMPT)
         gradleHandle.standardOutput.contains("result = thing")
+    }
+
+    def "task can declare user prompt as input property"() {
+        given:
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            tasks.register("generate", FileProducer) {
+                output = layout.buildDirectory.file("out.txt")
+                content = handler.askUser { it.askQuestion("what?", "default") }
+            }
+        """
+
+        when:
+        def result1 = runWithInput("generate", "value")
+
+        then:
+        result1.assertTaskNotSkipped(":generate")
+
+        when:
+        def result2 = runWithInput("generate", "value")
+
+        then:
+        result2.assertTaskSkipped(":generate")
+
+        when:
+        def result3 = runWithInput("generate", "default")
+
+        then:
+        result3.assertTaskNotSkipped(":generate")
+
+        when:
+        // Non interactive
+        run("generate")
+
+        then:
+        result.assertTaskSkipped(":generate")
+    }
+
+    ExecutionResult runWithInput(String task, String input) {
+        interactiveExecution()
+        def gradleHandle = executer.withTasks(task).start()
+        writeToStdInAndClose(gradleHandle, input)
+        return gradleHandle.waitForFinish()
     }
 
 }

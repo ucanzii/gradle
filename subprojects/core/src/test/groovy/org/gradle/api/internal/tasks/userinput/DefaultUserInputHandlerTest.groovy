@@ -16,13 +16,11 @@
 
 package org.gradle.api.internal.tasks.userinput
 
-
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.PromptOutputEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.time.Clock
-import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
@@ -34,9 +32,9 @@ class DefaultUserInputHandlerTest extends Specification {
     def userInputReader = Mock(UserInputReader)
     def clock = Mock(Clock)
     @Subject
-    def userInputHandler = new DefaultUserInputHandler(outputEventBroadcaster, clock, userInputReader, TestUtil.providerFactory())
+    def userInputHandler = new DefaultUserInputHandler(outputEventBroadcaster, clock, userInputReader)
 
-    def "ask required yes/no question"() {
+    def "can ask required yes/no question"() {
         when:
         def input = ask { it.askYesNoQuestion(TEXT) }
 
@@ -500,7 +498,7 @@ Enter selection (default: 11!) [1..3] """)
         0 * userInputHandler._
     }
 
-    def "user is prompted lazily when provider value is queried"() {
+    def "user is prompted lazily when provider value is queried and the result memoized"() {
         when:
         def input = userInputHandler.askUser { it.askQuestion("thing?", "value") }
 
@@ -515,17 +513,27 @@ Enter selection (default: 11!) [1..3] """)
         1 * outputEventBroadcaster.onOutput(_ as UserInputRequestEvent)
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt.trim() == "thing? (default: value):" }
-        1 * userInputReader.readInput() >> ""
+        1 * userInputReader.readInput() >> "42"
         1 * outputEventBroadcaster.onOutput(_) >> { PromptOutputEvent event -> assert event.prompt == TextUtil.platformLineSeparator }
         1 * outputEventBroadcaster.onOutput(_ as UserInputResumeEvent)
         0 * outputEventBroadcaster._
         0 * userInputHandler._
 
         and:
-        result == "value"
+        result == "42"
+
+        when:
+        def result2 = input.get()
+
+        then:
+        0 * outputEventBroadcaster._
+        0 * userInputHandler._
+
+        and:
+        result2 == "42"
     }
 
-    def "can ask multiple questions in several interaction"() {
+    def "can ask multiple questions in multiple interactions"() {
         when:
         def input1 = ask { it.askQuestion("enter value", "value") }
 
